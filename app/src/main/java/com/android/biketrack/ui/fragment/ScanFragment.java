@@ -489,6 +489,7 @@ public class ScanFragment extends Fragment {
             }, SCAN_PERIOD);
 
             mScanning = true;
+            // FIXME mLeScanCallback null if BlueTooth is off
             mBluetoothLeScanner.startScan(mLeScanCallback);
         } else {
             mScanning = false;

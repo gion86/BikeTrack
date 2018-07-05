@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     private boolean shouldLoadHomeFragOnBackPress = true;
     private Handler mHandler;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,16 +136,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         // Set toolbar title
         setToolbarTitle();
 
-        // If user select the current navigation menu again, don't do anything
-        // just close the navigation drawer
-        if (getSupportFragmentManager().findFragmentByTag(CURRENT_TAG) != null) {
-            drawer.closeDrawers();
-
-            // Show or hide the fab button
-            toggleFab();
-            return;
-        }
-
         // Sometimes, when fragment has huge data, screen seems hanging
         // when switching between navigation menus
         // So using runnable, the fragment is loaded with cross fade effect
@@ -160,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
                         android.R.anim.fade_out);
                 fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
+                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commitAllowingStateLoss();
             }
         };
@@ -180,6 +170,12 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     }
 
     private Fragment getHomeFragment() {
+        Fragment f = getSupportFragmentManager().findFragmentByTag(CURRENT_TAG);
+
+        if (f != null) {
+            return f;
+        }
+
         switch (navItemIndex) {
             case 0:
                 // Home
