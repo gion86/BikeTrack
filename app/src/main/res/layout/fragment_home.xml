@@ -36,13 +36,6 @@
             android:text="@string/get_last_location" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:gravity="center_horizontal"
-            android:text="Location updates will be received only when app is foreground" />
-
-        <TextView
             android:id="@+id/location_result"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

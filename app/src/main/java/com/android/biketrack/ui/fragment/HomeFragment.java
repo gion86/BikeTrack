@@ -1,21 +1,25 @@
 package com.android.biketrack.ui.fragment;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,21 +30,11 @@ import android.widget.Toast;
 
 import com.android.biketrack.BuildConfig;
 import com.android.biketrack.R;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
+import com.android.biketrack.service.location.LocationUpdatesService;
+import com.android.biketrack.utils.LocationUtils;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -59,13 +53,14 @@ import java.util.Date;
  * Use the {@link HomeFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = HomeFragment.class.getSimpleName();
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String STAV = "STAV";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -93,63 +88,54 @@ public class HomeFragment extends Fragment {
     private static final int REQUEST_CHECK_SETTINGS = 100;
 
     // Bunch of location related apis
-    private FusedLocationProviderClient mFusedLocationClient;
     private SettingsClient mSettingsClient;
-    private LocationRequest mLocationRequest;
     private LocationSettingsRequest mLocationSettingsRequest;
-    private LocationCallback mLocationCallback;
     private Location mCurrentLocation;
 
     // Boolean flag to toggle the ui
     private Boolean mRequestingLocationUpdates;
 
-    private void init() {
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
-        mSettingsClient = LocationServices.getSettingsClient(getActivity());
+    private LocationUpdatesService mService;
 
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                // location is received
-                mCurrentLocation = locationResult.getLastLocation();
-                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+    private boolean mBound;
 
-                updateLocationUI();
-            }
-        };
+    private Bundle mSavedState = null;
 
-        mRequestingLocationUpdates = false;
+    // TODO mCurrentLocation = locationResult.getLastLocation();
 
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    // Monitors the state of the connection to the service.
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(mLocationRequest);
-        mLocationSettingsRequest = builder.build();
-    }
-
-    /**
-     * Restoring values from saved instance state
-     */
-    private void restoreValuesFromBundle(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("is_requesting_updates")) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean("is_requesting_updates");
-            }
-
-            if (savedInstanceState.containsKey("last_known_location")) {
-                mCurrentLocation = savedInstanceState.getParcelable("last_known_location");
-            }
-
-            if (savedInstanceState.containsKey("last_updated_on")) {
-                mLastUpdateTime = savedInstanceState.getString("last_updated_on");
-            }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
         }
 
-        updateLocationUI();
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+            mBound = false;
+        }
+    };
+
+    private MyReceiver myReceiver;
+
+
+    /**
+     * Receiver for broadcasts sent by {@link LocationUpdatesService}.
+     */
+    private class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Location location = intent.getParcelableExtra(LocationUpdatesService.EXTRA_LOCATION);
+            if (location != null) {
+                mCurrentLocation = location;
+                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+                updateLocationUI();
+            }
+        }
     }
 
     /**
@@ -158,12 +144,11 @@ public class HomeFragment extends Fragment {
      */
     private void updateLocationUI() {
         if (mCurrentLocation != null) {
-            txtLocationResult.setText(
-                    "Lat: " + mCurrentLocation.getLatitude() + ", " +
-                            "Lng: " + mCurrentLocation.getLongitude()
+            txtLocationResult.setText("Lat: " + mCurrentLocation.getLatitude() + ", " +
+                    "Lng: " + mCurrentLocation.getLongitude()
             );
 
-            // giving a blink animation on TextView
+            // Giving a blink animation on TextView
             txtLocationResult.setAlpha(0);
             txtLocationResult.animate().alpha(1).setDuration(300);
 
@@ -190,7 +175,16 @@ public class HomeFragment extends Fragment {
      * location updates will be requested
      */
     private void startLocationUpdates() {
-        mSettingsClient
+
+        Toast.makeText(getActivity().getApplicationContext(), "Started location updates!", Toast.LENGTH_SHORT).show();
+        mService.requestLocationUpdates();
+        updateLocationUI();
+
+        //noinspection MissingPermission
+        //mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+        //        mLocationCallback, Looper.myLooper());
+
+        /*mSettingsClient
                 .checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
                     @SuppressLint("MissingPermission")
@@ -201,8 +195,10 @@ public class HomeFragment extends Fragment {
                         Toast.makeText(getActivity().getApplicationContext(), "Started location updates!", Toast.LENGTH_SHORT).show();
 
                         //noinspection MissingPermission
-                        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                                mLocationCallback, Looper.myLooper());
+                        //mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                        //        mLocationCallback, Looper.myLooper());
+
+                        mService.requestLocationUpdates();
 
                         updateLocationUI();
                     }
@@ -234,7 +230,7 @@ public class HomeFragment extends Fragment {
 
                         updateLocationUI();
                     }
-                });
+                });*/
     }
 
     private boolean checkPermissions() {
@@ -243,23 +239,42 @@ public class HomeFragment extends Fragment {
         return permissionState == PackageManager.PERMISSION_GRANTED;
     }
 
-
     private void stopLocationButtonClick() {
         mRequestingLocationUpdates = false;
         stopLocationUpdates();
     }
 
-    private void stopLocationUpdates() {
-        // Removing location updates
-        mFusedLocationClient
-                .removeLocationUpdates(mLocationCallback)
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<Void>() {
+    private void startLocationButtonClick() {
+        // Requesting ACCESS_FINE_LOCATION using Dexter library
+        Dexter.withActivity(getActivity())
+                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(new PermissionListener() {
                     @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(getActivity().getApplicationContext(), "Location updates stopped!", Toast.LENGTH_SHORT).show();
-                        toggleButtons();
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        mRequestingLocationUpdates = true;
+                        startLocationUpdates();
                     }
-                });
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        if (response.isPermanentlyDenied()) {
+                            // open device settings when the permission is
+                            // denied permanently
+                            openSettings();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
+
+    private void stopLocationUpdates() {
+        mService.removeLocationUpdates();
+        Toast.makeText(getActivity().getApplicationContext(), "Location updates stopped!", Toast.LENGTH_SHORT).show();
+        toggleButtons();
     }
 
     private void showLastKnownLocation() {
@@ -301,11 +316,41 @@ public class HomeFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        // initialize the necessary libraries
-        init();
+        /* If the Fragment was destroyed inbetween (screen rotation), we need to recover the savedState first */
+        /* However, if it was not, it stays in the instance from the last onDestroyView() and we don't want to overwrite it */
+        if (savedInstanceState != null && mSavedState == null) {
+            mSavedState = savedInstanceState.getBundle(STAV);
+        }
+        if (mSavedState != null) {
+            if (mSavedState.containsKey("is_requesting_updates")) {
+                mRequestingLocationUpdates = mSavedState.getBoolean("is_requesting_updates");
+            }
+            if (savedInstanceState.containsKey("last_known_location")) {
+                mCurrentLocation = mSavedState.getParcelable("last_known_location");
+            }
+            if (savedInstanceState.containsKey("last_updated_on")) {
+                mLastUpdateTime = mSavedState.getString("last_updated_on");
+            }
+        }
+        mSavedState = null;
 
-        // restore the values from saved instance state
-        // TODO restoreValuesFromBundle(savedInstanceState);
+        mSettingsClient = LocationServices.getSettingsClient(getActivity());
+
+        mRequestingLocationUpdates = false;
+
+        /*mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(mLocationRequest);
+        mLocationSettingsRequest = builder.build();*/
+
+        // Restore the values from saved instance state
+        restoreValuesFromBundle(savedInstanceState);
+
+        myReceiver = new MyReceiver();
     }
 
     @Override
@@ -343,6 +388,8 @@ public class HomeFragment extends Fragment {
                 showLastKnownLocation();
             }
         });
+
+        updateLocationUI();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -364,8 +411,20 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        // Bind to the service. If the service is in foreground mode, this signals to the service
+        // that since this activity is in the foreground, the service can exit foreground mode.
+        getActivity().bindService(new Intent(getActivity(), LocationUpdatesService.class), mServiceConnection,
+                Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(myReceiver,
+                new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
 
         // Resuming location updates depending on button state and
         // allowed permissions
@@ -378,21 +437,64 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onPause() {
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(myReceiver);
         super.onPause();
+    }
 
-        if (mRequestingLocationUpdates) {
-            // pausing location updates
-            stopLocationUpdates();
+    /**
+     * Restoring values from saved instance state
+     */
+    private void restoreValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("is_requesting_updates")) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean("is_requesting_updates");
+            }
+
+            if (savedInstanceState.containsKey("last_known_location")) {
+                mCurrentLocation = savedInstanceState.getParcelable("last_known_location");
+            }
+
+            if (savedInstanceState.containsKey("last_updated_on")) {
+                mLastUpdateTime = savedInstanceState.getString("last_updated_on");
+            }
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("is_requesting_updates", mRequestingLocationUpdates);
-        outState.putParcelable("last_known_location", mCurrentLocation);
-        outState.putString("last_updated_on", mLastUpdateTime);
+        /* If onDestroyView() is called first, we can use the previously savedState but we can't call saveState() anymore */
+        /* If onSaveInstanceState() is called first, we don't have savedState, so we need to call saveState() */
+        /* => (?:) operator inevitable! */
+        outState.putBundle(STAV, (mSavedState != null) ? mSavedState : saveState());
+    }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mSavedState = saveState(); /* vstup defined here for sure */
+    }
+
+    private Bundle saveState() { /* called either from onDestroyView() or onSaveInstanceState() */
+        Bundle state = new Bundle();
+        state.putBoolean("is_requesting_updates", mRequestingLocationUpdates);
+        state.putParcelable("last_known_location", mCurrentLocation);
+        state.putString("last_updated_on", mLastUpdateTime);
+        return state;
+    }
+
+    @Override
+    public void onStop() {
+        if (mBound) {
+            // Unbind from the service. This signals to the service that this activity is no longer
+            // in the foreground, and the service can respond by promoting itself to a foreground
+            // service.
+            getActivity().unbindService(mServiceConnection);
+            mBound = false;
+        }
+        PreferenceManager.getDefaultSharedPreferences(getActivity())
+                .unregisterOnSharedPreferenceChangeListener(this);
+        super.onStop();
     }
 
     @Override
@@ -401,33 +503,15 @@ public class HomeFragment extends Fragment {
         mListener = null;
     }
 
-    public void startLocationButtonClick() {
-        // Requesting ACCESS_FINE_LOCATION using Dexter library
-        Dexter.withActivity(getActivity())
-                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                .withListener(new PermissionListener() {
-                    @Override
-                    public void onPermissionGranted(PermissionGrantedResponse response) {
-                        mRequestingLocationUpdates = true;
-                        startLocationUpdates();
-                    }
-
-                    @Override
-                    public void onPermissionDenied(PermissionDeniedResponse response) {
-                        if (response.isPermanentlyDenied()) {
-                            // open device settings when the permission is
-                            // denied permanently
-                            openSettings();
-                        }
-                    }
-
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-                        token.continuePermissionRequest();
-                    }
-                }).check();
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        // Update the buttons state depending on whether location updates are being requested.
+        if (s.equals(LocationUtils.KEY_REQUESTING_LOCATION_UPDATES)) {
+            mRequestingLocationUpdates = sharedPreferences.getBoolean(LocationUtils.KEY_REQUESTING_LOCATION_UPDATES,
+                    false);
+            toggleButtons();
+        }
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -450,14 +534,13 @@ public class HomeFragment extends Fragment {
 
     private void openSettings() {
         Intent intent = new Intent();
-        intent.setAction(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package",
-                BuildConfig.APPLICATION_ID, null);
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null);
         intent.setData(uri);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
