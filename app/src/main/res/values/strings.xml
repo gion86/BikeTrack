@@ -57,4 +57,19 @@
     <string name="get_last_location">GET LAST LOCATION</string>
     <string name="location_updated">Loc Up: %1$s</string>
 
+    <!-- Tracks categories -->
+    <string name="activity_type_cycling">cycling</string>
+    <string name="activity_type_dirt_bike">dirt bike </string>
+    <string name="activity_type_mountain_biking">mountain biking</string>
+    <string name="activity_type_road_biking">road biking</string>
+    <string name="activity_type_track_cycling">track cycling</string>
+
+
+    <string name="activity_type_running">running</string>
+    <string name="activity_type_speed_walking">speed walking</string>
+    <string name="activity_type_street_running">street running</string>
+    <string name="activity_type_track_running">track running</string>
+    <string name="activity_type_trail_running">trail running</string>
+    <string name="activity_type_walking">walking</string>
+
 </resources>
