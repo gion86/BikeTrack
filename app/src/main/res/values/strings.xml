@@ -17,7 +17,6 @@
         <item>Home</item>
         <item>Scan BLE</item>
         <item>Settings</item>
-        <item>About</item>
     </string-array>
 
     <string name="activity_title_about_us">About</string>
@@ -26,12 +25,16 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    <!-- Sscan Fragment -->
+    <!-- Home Fragment -->
+
+    <!-- Scan Fragment -->
     <string name="title_devices">Device Scan</string>
     <string name="unknown_device">Unknown device</string>
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
     <string name="menu_refresh">Refresh</string>
+
+    <!-- Settings Fragment -->
 
     <!-- BLE Service -->
     <string name="error_bluetooth_not_supported">Bluetooth not supported</string>
