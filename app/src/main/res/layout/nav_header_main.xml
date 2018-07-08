@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/view_container"
     android:layout_width="match_parent"
     android:layout_height="@dimen/nav_header_height"
@@ -13,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@drawable/mtb_nav_bg" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -21,13 +20,6 @@
         android:layout_centerVertical="true"
         android:orientation="vertical"
         android:padding="@dimen/activity_horizontal_margin">
-
-        <ImageView
-            android:id="@+id/img_profile"
-            android:layout_width="@dimen/profile_width"
-            android:layout_height="@dimen/profile_height"
-            android:paddingTop="@dimen/nav_header_vertical_spacing"
-            app:srcCompat="@android:drawable/sym_def_app_icon" />
 
         <TextView
             android:id="@+id/name"

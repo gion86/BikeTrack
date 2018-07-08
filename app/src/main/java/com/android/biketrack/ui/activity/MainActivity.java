@@ -18,7 +18,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,22 +32,18 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     private NavigationView mNavigationView;
     private DrawerLayout mDrawer;
     private View mNavHeader;
-    private ImageView mImgNavHeaderBg, mImgProfile;
     private TextView mTxtName, mTxtWebsite;
     private Toolbar mToolbar;
     private FloatingActionButton mStartButtton;
 
     // Index to identify current nav menu item
-    public static int navItemIndex = 0;
+    public static int mNavItemIndex = 0;
 
     // Tags used to attach the fragments
-    private static final String TAG_HOME = "home";
-    private static final String TAG_SCAN = "scan";
-    private static final String TAG_SETTINGS = "settings";
-    public static String CURRENT_TAG = TAG_HOME;
+    private static final String[] FRAGMENT_TAGS = {"home", "scan", "settings"};
 
     // Toolbar titles respected to selected nav menu item
-    private String[] activityTitles;
+    private String[] mFragmentTitles;
 
     // Flag to load home fragment when user presses back key
     private boolean shouldLoadHomeFragOnBackPress = true;
@@ -71,11 +66,9 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         mNavHeader = mNavigationView.getHeaderView(0);
         mTxtName = mNavHeader.findViewById(R.id.name);
         mTxtWebsite = mNavHeader.findViewById(R.id.website);
-        mImgNavHeaderBg = mNavHeader.findViewById(R.id.img_header_bg);
-        mImgProfile = mNavHeader.findViewById(R.id.img_profile);
 
         // Load toolbar titles from string resources
-        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
+        mFragmentTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
         mStartButtton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,9 +86,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
         // TODO bundle??
         if (savedInstanceState == null) {
-            navItemIndex = 0;
-            CURRENT_TAG = TAG_HOME;
-            loadHomeFragment();
+            mNavItemIndex = 0;
+            loadFragment(mNavItemIndex);
         }
     }
 
@@ -108,35 +100,18 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         // TODO Name, website
         mTxtName.setText("Bike Track");
         mTxtWebsite.setText("Website??");
-
-  /*      // TODO loading header background image
-        Glide.with(this).load(urlNavHeaderBg)
-                .crossFade()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(mImgNavHeaderBg);
-
-        // Loading profile image
-        Glide.with(this).load(urlProfileImg)
-                .crossFade()
-                .thumbnail(0.5f)
-                .bitmapTransform(new CircleTransform(this))
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(mImgProfile);
-
-        // showing dot next to notifications label
-        mNavigationView.getMenu().getItem(3).setActionView(R.layout.menu_dot);*/
     }
 
     /***
      * Returns respected fragment that user
      * selected from navigation menu
      */
-    private void loadHomeFragment() {
+    private void loadFragment(final int index) {
         // Selecting appropriate nav menu item
-        selectNavMenu();
+        selectNavMenu(index);
 
         // Set toolbar title
-        setToolbarTitle();
+        setToolbarTitle(index);
 
         // Sometimes, when fragment has huge data, screen seems hanging
         // when switching between navigation menus
@@ -146,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             @Override
             public void run() {
                 // Update the main content by replacing fragments
-                Fragment fragment = getSupportFragmentManager().findFragmentByTag(CURRENT_TAG);
+                Fragment fragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAGS[index]);
 
                 if (fragment == null) {
                    fragment = getFragment();
@@ -154,17 +129,15 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
                 FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
+                fragmentTransaction.replace(R.id.frame, fragment, FRAGMENT_TAGS[index]);
                 fragmentTransaction.commit();
             }
         };
 
-        // If mPendingRunnable is not null, then add to the message queue
-        if (mPendingRunnable != null) {
-            mHandler.post(mPendingRunnable);
-        }
+        // Add to the message queue
+        mHandler.post(mPendingRunnable);
 
-        // Show or hide the mStartButtton button
+        // Show or hide the fab button
         toggleFab();
 
         // Closing mDrawer on item click
@@ -175,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     }
 
     private Fragment getFragment() {
-        switch (navItemIndex) {
+        switch (mNavItemIndex) {
             case 0:
                 // Home
                 return new HomeFragment();
@@ -190,12 +163,12 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         }
     }
 
-    private void setToolbarTitle() {
-        getSupportActionBar().setTitle(activityTitles[navItemIndex]);
+    private void setToolbarTitle(int index) {
+        getSupportActionBar().setTitle(mFragmentTitles[index]);
     }
 
-    private void selectNavMenu() {
-        mNavigationView.getMenu().getItem(navItemIndex).setChecked(true);
+    private void selectNavMenu(int index) {
+        mNavigationView.getMenu().getItem(index).setChecked(true);
     }
 
     private void setUpNavigationView() {
@@ -210,16 +183,13 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 switch (menuItem.getItemId()) {
                     // Replacing the main content with ContentFragment Which is our Inbox View;
                     case R.id.nav_home:
-                        navItemIndex = 0;
-                        CURRENT_TAG = TAG_HOME;
+                        mNavItemIndex = 0;
                         break;
                     case R.id.nav_scan:
-                        navItemIndex = 1;
-                        CURRENT_TAG = TAG_SCAN;
+                        mNavItemIndex = 1;
                         break;
                     case R.id.nav_settings:
-                        navItemIndex = 2;
-                        CURRENT_TAG = TAG_SETTINGS;
+                        mNavItemIndex = 2;
                         break;
                     case R.id.nav_about:
                         // Launch new intent instead of loading fragment
@@ -227,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                         mDrawer.closeDrawers();
                         return true;
                     default:
-                        navItemIndex = 0;
+                        mNavItemIndex = 0;
                 }
 
                 // Checking if the item is in checked state or not, if not make it in checked state
@@ -238,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 }
                 menuItem.setChecked(true);
 
-                loadHomeFragment();
+                loadFragment(mNavItemIndex);
 
                 return true;
             }
@@ -273,14 +243,13 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            if (navItemIndex == 0) {
+            if (mNavItemIndex == 0) {
                 getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 super.onBackPressed();
             } else {
                 getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                navItemIndex = 0;
-                CURRENT_TAG = TAG_HOME;
-                loadHomeFragment();
+                mNavItemIndex = 0;
+                loadFragment(mNavItemIndex);
             }
         }
     }
@@ -290,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         // Inflate the menu; this adds items to the action bar if it is present.
 
         // Show menu only when home fragment is selected
-        if (navItemIndex == 0) {
+        if (mNavItemIndex == 0) {
             getMenuInflater().inflate(R.menu.main, menu);
         }
 
@@ -314,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
     // show or hide the mStartButtton
     private void toggleFab() {
-        if (navItemIndex == 0)
+        if (mNavItemIndex == 0)
             mStartButtton.show();
         else
             mStartButtton.hide();
