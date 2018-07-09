@@ -46,13 +46,6 @@ public interface MyTracksProviderUtils {
   public void clearTrack(Context context, long trackId);
 
   /**
-   * Creates a {@link Track} from a cursor.
-   * 
-   * @param cursor the cursor pointing to the track
-   */
-  public Track createTrack(Cursor cursor);
-
-  /**
    * Deletes all tracks (including waypoints and track points).
    */
   public void deleteAllTracks(Context context);
@@ -86,16 +79,6 @@ public interface MyTracksProviderUtils {
   public Track getTrack(long trackId);
 
   /**
-   * Gets a track cursor. The caller owns the returned cursor and is responsible
-   * for closing it.
-   * 
-   * @param selection the selection. Can be null
-   * @param selectionArgs the selection arguments. Can be null
-   * @param sortOrder the sort order. Can be null
-   */
-  public Cursor getTrackCursor(String selection, String[] selectionArgs, String sortOrder);
-
-  /**
    * Inserts a track.
    * <p>
    * Note: This doesn't insert any track points.
@@ -113,13 +96,6 @@ public interface MyTracksProviderUtils {
    * @param track the track
    */
   public void updateTrack(Track track);
-
-  /**
-   * Creates a waypoint from a cursor.
-   * 
-   * @param cursor the cursor pointing to the waypoint
-   */
-  public Waypoint createWaypoint(Cursor cursor);
 
   /**
    * Deletes a waypoint. If deleting a statistics waypoint, this will also
@@ -164,30 +140,6 @@ public interface MyTracksProviderUtils {
   public Waypoint getWaypoint(long waypointId);
 
   /**
-   * Gets a waypoint cursor. The caller owns the returned cursor and is
-   * responsible for closing it.
-   * 
-   * @param selection the selection. Can be null
-   * @param selectionArgs the selection arguments. Can be null
-   * @param sortOrder the sort order. Can be null
-   * @param maxWaypoints the maximum number of waypoints to return. -1 for no
-   *          limit
-   */
-  public Cursor getWaypointCursor(
-          String selection, String[] selectionArgs, String sortOrder, int maxWaypoints);
-
-  /**
-   * Gets a waypoint cursor for a track. The caller owns the returned cursor and
-   * is responsible for closing it.
-   *
-   * @param trackId the track id
-   * @param minWaypointId the minimum waypoint id. -1L to ignore
-   * @param maxWaypoints the maximum number of waypoints to return. -1 for no
-   *          limit
-   */
-  public Cursor getWaypointCursor(long trackId, long minWaypointId, int maxWaypoints);
-
-  /**
    * Gets the number of waypoints for a track.
    *
    * @param trackId the track id
@@ -219,13 +171,6 @@ public interface MyTracksProviderUtils {
    * @return the number of points inserted
    */
   public int bulkInsertTrackPoint(Location[] locations, int length, long trackId);
-
-  /**
-   * Creates a location object from a cursor.
-   *
-   * @param cursor the cursor pointing to the location
-   */
-  public Location createTrackPoint(Cursor cursor);
 
   /**
    * Gets the first location id for a track. Returns -1L if it doesn't exist.
@@ -270,19 +215,6 @@ public interface MyTracksProviderUtils {
    * Gets the last valid location.
    */
   public Location getLastValidTrackPoint();
-
-  /**
-   * Creates a location cursor. The caller owns the returned cursor and is
-   * responsible for closing it.
-   *
-   * @param trackId the track id
-   * @param startTrackPointId the starting track point id. -1L to ignore
-   * @param maxLocations maximum number of locations to return. -1 for no limit
-   * @param descending true to sort the result in descending order (latest
-   *          location first)
-   */
-  public Cursor getTrackPointCursor(
-          long trackId, long startTrackPointId, int maxLocations, boolean descending);
 
   /**
    * Creates a new read-only iterator over a given track's points. It provides a

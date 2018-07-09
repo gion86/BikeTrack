@@ -18,9 +18,10 @@ package com.android.biketrack.content;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
+
+import com.android.biketrack.stats.TripStatistics;
 
 import java.util.List;
 
@@ -51,11 +52,6 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
   }
 
     @Override
-    public Track createTrack(Cursor cursor) {
-        return null;
-    }
-
-    @Override
     public void deleteAllTracks(Context context) {
 
     }
@@ -77,12 +73,23 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
 
     @Override
     public Track getTrack(long trackId) {
-        return null;
-    }
+        Track track = new Track();
+        TripStatistics tripStatistics = track.getTripStatistics();
 
-    @Override
-    public Cursor getTrackCursor(String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        track.setId(0);
+        track.setName("Test track");
+        track.setDescription("Test description");
+        track.setCategory("Test category");
+        track.setStartId(0);
+        track.setStopId(100);
+        tripStatistics.setStartTime(998888);
+        tripStatistics.setStopTime(2323782);
+        track.setNumberOfPoints(10);
+        tripStatistics.setTotalDistance(100.44);
+        tripStatistics.setTotalTime(34224444);
+        tripStatistics.setMovingTime(324243);
+
+        return track;
     }
 
     @Override
@@ -93,11 +100,6 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
     @Override
     public void updateTrack(Track track) {
 
-    }
-
-    @Override
-    public Waypoint createWaypoint(Cursor cursor) {
-        return null;
     }
 
     @Override
@@ -126,16 +128,6 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
     }
 
     @Override
-    public Cursor getWaypointCursor(String selection, String[] selectionArgs, String sortOrder, int maxWaypoints) {
-        return null;
-    }
-
-    @Override
-    public Cursor getWaypointCursor(long trackId, long minWaypointId, int maxWaypoints) {
-        return null;
-    }
-
-    @Override
     public int getWaypointCount(long trackId) {
         return 0;
     }
@@ -153,11 +145,6 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
     @Override
     public int bulkInsertTrackPoint(Location[] locations, int length, long trackId) {
         return 0;
-    }
-
-    @Override
-    public Location createTrackPoint(Cursor cursor) {
-        return null;
     }
 
     @Override
@@ -187,11 +174,6 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
 
     @Override
     public Location getLastValidTrackPoint() {
-        return null;
-    }
-
-    @Override
-    public Cursor getTrackPointCursor(long trackId, long startTrackPointId, int maxLocations, boolean descending) {
         return null;
     }
 

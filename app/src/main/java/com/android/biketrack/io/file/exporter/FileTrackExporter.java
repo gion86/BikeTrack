@@ -16,15 +16,12 @@
 
 package com.android.biketrack.io.file.exporter;
 
-import android.database.Cursor;
 import android.location.Location;
 import android.util.Log;
 
-import com.android.biketrack.Constants;
 import com.android.biketrack.content.MyTracksProviderUtils;
 import com.android.biketrack.content.Track;
 import com.android.biketrack.content.TrackLocation;
-import com.android.biketrack.content.Waypoint;
 import com.android.biketrack.utils.LocationUtils;
 
 import java.io.OutputStream;
@@ -74,7 +71,7 @@ public class FileTrackExporter implements TrackExporter {
       long startTime = tracks[0].getTripStatistics().getStartTime();
       for (int i = 0; i < tracks.length; i++) {
         long offset = tracks[i].getTripStatistics().getStartTime() - startTime;
-        writeLocations(tracks[i], offset);
+        // TODO writeLocations(tracks[i], offset);
       }
       trackWriter.writeEndTracks();
       trackWriter.writeFooter();
@@ -95,16 +92,17 @@ public class FileTrackExporter implements TrackExporter {
      * waypoints very high which should not be a problem because we don't try to
      * load them into objects all at the same time.
      */
-    boolean hasWaypoints = false;
+
+    /*boolean hasWaypoints = false;
     Cursor cursor = null;
     try {
       cursor = myTracksProviderUtils.getWaypointCursor(
           track.getId(), -1L, Constants.MAX_LOADED_WAYPOINTS_POINTS);
       if (cursor != null && cursor.moveToFirst()) {
-        /*
+        *//*
          * Yes, this will skip the first waypoint and that is intentional as the
          * first waypoint holds the stats for the track.
-         */
+         *//*
         while (cursor.moveToNext()) {
           if (Thread.interrupted()) {
             throw new InterruptedException();
@@ -124,7 +122,7 @@ public class FileTrackExporter implements TrackExporter {
     }
     if (hasWaypoints) {
       trackWriter.writeEndWaypoints();
-    }
+    }*/
   }
 
   /**
