@@ -4,6 +4,9 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.android.biketrack.io.file.exporter.CsvTrackWriter;
+import com.android.biketrack.io.file.exporter.GpxTrackWriter;
+import com.android.biketrack.io.file.exporter.KmlTrackWriter;
 import com.android.biketrack.io.file.exporter.TcxTrackWriter;
 import com.android.biketrack.io.file.exporter.TrackWriter;
 
@@ -13,16 +16,16 @@ import java.util.Locale;
  * Definition of all possible track formats.
  */
 public enum TrackFileFormat implements Parcelable {
-  /*KML {
+  KML {
   @Override
     public TrackWriter newTrackWriter(Context context, boolean multiple, boolean playTrack) {
-      return new KmlTrackWriter(context, multiple, playTrack);
+     return new KmlTrackWriter(context, multiple, playTrack);
     }
   },
   GPX {
   @Override
     public TrackWriter newTrackWriter(Context context, boolean multiple, boolean playTrack) {
-      /return new GpxTrackWriter(context);
+      return new GpxTrackWriter(context);
     }
   },
   CSV {
@@ -30,7 +33,7 @@ public enum TrackFileFormat implements Parcelable {
     public TrackWriter newTrackWriter(Context context, boolean multiple, boolean playTrack) {
       return new CsvTrackWriter(context);
     }
-  },*/
+  },
   TCX {
   @Override
     public TrackWriter newTrackWriter(Context context, boolean multiple, boolean playTrack) {

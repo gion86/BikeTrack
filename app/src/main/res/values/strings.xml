@@ -25,6 +25,27 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <!-- Generic -->
+    <string name="generic_progress_title">Please wait&#8230;</string>
+    <string name="generic_yes">Yes</string>
+    <string name="generic_no">No</string>
+    <string name="generic_ok">OK</string>
+    <string name="generic_success_title">Success</string>
+    <string name="generic_error_title">Error</string>
+
+
+    <!-- External Storage -->
+    <string name="external_storage_not_available">External storage not available</string>
+    <string name="external_storage_not_writable">External storage not writable</string>
+
+
+    <!-- Export -->
+    <string name="export_external_storage">External storage </string>
+    <string name="export_external_storage_error"> Exported %1$d of %2$s to %3$s</string>
+    <string name="export_external_storage_option">as %1$s to %2$s</string>
+    <string name="export_external_storage_progress_message"> Exporting to %1$s&#8230;</string>
+    <string name="export_external_storage_success">Exported %1$s to %2$s</string>
+
     <!-- Home Fragment -->
 
     <!-- Scan Fragment -->
@@ -64,6 +85,13 @@
     <string name="activity_type_road_biking">road biking</string>
     <string name="activity_type_track_cycling">track cycling</string>
 
+    <!-- Tracks -->
+    <string name="tracks_few">%1$d tracks</string>
+    <string name="tracks_many">%1$d tracks</string>
+    <string name="tracks_one">1 track</string>
+    <string name="tracks_other">%1$d tracks</string>
+    <string name="tracks_two">2 tracks</string>
+    <string name="tracks_zero">0 tracks</string>
 
     <string name="activity_type_running">running</string>
     <string name="activity_type_speed_walking">speed walking</string>
@@ -71,5 +99,13 @@
     <string name="activity_type_track_running">track running</string>
     <string name="activity_type_trail_running">trail running</string>
     <string name="activity_type_walking">walking</string>
+
+    <!-- Files -->
+    <string name="files_few">%1$d files</string>
+    <string name="files_many">%1$d files</string>
+    <string name="files_one">1 file</string>
+    <string name="files_other">%1$d files</string>
+    <string name="files_two">2 files</string>
+    <string name="files_zero">0 files</string>
 
 </resources>

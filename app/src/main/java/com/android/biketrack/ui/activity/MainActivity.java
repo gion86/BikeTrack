@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.biketrack.R;
+import com.android.biketrack.io.file.TrackFileFormat;
 import com.android.biketrack.ui.fragment.HomeFragment;
 import com.android.biketrack.ui.fragment.ScanFragment;
 import com.android.biketrack.ui.fragment.SettingsFragment;
@@ -73,8 +74,13 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         mStartButtton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //return new Intent(context, cls).addFlags(
+                //        Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                Intent intent = new Intent(getApplicationContext(), SaveActivity.class)
+                        .putExtra(SaveActivity.EXTRA_TRACK_IDS, new long[] { 0 })
+                        .putExtra(SaveActivity.EXTRA_TRACK_FILE_FORMAT, (Parcelable) TrackFileFormat.TCX);
+                startActivity(intent);
             }
         });
 
