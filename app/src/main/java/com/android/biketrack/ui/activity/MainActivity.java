@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -30,6 +31,7 @@ import com.android.biketrack.ui.fragment.SettingsFragment;
 public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
         ScanFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener {
 
+    public static final String STATE_NAV_ITEM_INDEX = "NAV_ITEM_INDEX";
     private NavigationView mNavigationView;
     private DrawerLayout mDrawer;
     private View mNavHeader;
@@ -47,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     private String[] mFragmentTitles;
 
     // Flag to load home fragment when user presses back key
-    private boolean shouldLoadHomeFragOnBackPress = true;
     private Handler mHandler;
 
     @Override
@@ -84,28 +85,27 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             }
         });
 
-        // Load nav menu header data
-        loadNavHeader();
+        // Set nav menu header data
+        mTxtName.setText(getString(R.string.app_name));
+        mTxtWebsite.setText("Merida BIG Nine 900");  // TODO Bike name preference
 
         // Initializing navigation menu
         setUpNavigationView();
 
-        // TODO bundle??
         if (savedInstanceState == null) {
             mNavItemIndex = 0;
-            loadFragment(mNavItemIndex);
+        } else {
+            mNavItemIndex = savedInstanceState.getInt(STATE_NAV_ITEM_INDEX);
         }
+
+        loadFragment(mNavItemIndex);
     }
 
-    /***
-     * Load navigation menu header information
-     * like background image, profile image
-     * name, website, notifications action view (dot)
-     */
-    private void loadNavHeader() {
-        // TODO Name, website
-        mTxtName.setText("Bike Track");
-        mTxtWebsite.setText("Website??");
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+        outState.putInt(STATE_NAV_ITEM_INDEX, mNavItemIndex);
     }
 
     /***

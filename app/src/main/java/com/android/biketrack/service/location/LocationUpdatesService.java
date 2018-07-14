@@ -20,6 +20,7 @@ import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +38,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.android.biketrack.R;
+import com.android.biketrack.ui.activity.MainActivity;
 import com.android.biketrack.utils.LocationUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -223,15 +225,6 @@ public class LocationUpdatesService extends Service {
         // do nothing. Otherwise, we make this service a foreground service.
         if (!mChangingConfiguration && LocationUtils.requestingLocationUpdates(this)) {
             Log.i(TAG, "Starting foreground service");
-            /*
-            // TODO(developer). If targeting O, use the following code.
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
-                mNotificationManager.startServiceInForeground(new Intent(this,
-                        LocationUpdatesService.class), NOTIFICATION_ID, getNotification());
-            } else {
-                startForeground(NOTIFICATION_ID, getNotification());
-            }
-             */
             startForeground(NOTIFICATION_ID, getNotification());
         }
         return true; // Ensures onRebind() is called when a client re-binds.
@@ -287,18 +280,18 @@ public class LocationUpdatesService extends Service {
         intent.putExtra(EXTRA_STARTED_FROM_NOTIFICATION, true);
 
         // The PendingIntent that leads to a call to onStartCommand() in this service.
-        //PendingIntent servicePendingIntent = PendingIntent.getService(this, 0, intent,
-        //        PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent servicePendingIntent = PendingIntent.getService(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        // TODO The PendingIntent to launch activity.
-        //PendingIntent activityPendingIntent = PendingIntent.getActivity(this, 0,
-        //        new Intent(this, MainActivity.class), 0);
+        // The PendingIntent to launch activity.
+        PendingIntent activityPendingIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MainActivity.class), 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-//                .addAction(R.drawable.ic_launch, getString(R.string.launch_activity),
-//                        activityPendingIntent)
-//                .addAction(R.drawable.ic_cancel, getString(R.string.remove_location_updates),
-//                        servicePendingIntent)
+                .addAction(R.drawable.ic_launch, getString(R.string.launch_activity),
+                        activityPendingIntent)
+                .addAction(R.drawable.ic_cancel, getString(R.string.remove_location_updates),
+                        servicePendingIntent)
                 .setContentText(text)
                 .setContentTitle(getLocationTitle(this))
                 .setOngoing(true)

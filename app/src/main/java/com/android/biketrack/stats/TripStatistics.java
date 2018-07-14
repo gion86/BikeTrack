@@ -22,8 +22,6 @@ import android.os.Parcelable;
 /**
  * Statistical data about a trip. The data in this class should be filled out by
  * TripStatisticsBuilder.
- * <p>
- * TODO: hashCode and equals
  *
  * @author Rodrigo Damazio
  */

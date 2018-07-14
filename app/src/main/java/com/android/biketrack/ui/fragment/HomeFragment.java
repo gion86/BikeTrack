@@ -1,12 +1,14 @@
 package com.android.biketrack.ui.fragment;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,7 +18,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.BuildConfig;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -28,13 +32,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.biketrack.BuildConfig;
 import com.android.biketrack.R;
 import com.android.biketrack.service.location.LocationUpdatesService;
 import com.android.biketrack.utils.LocationUtils;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -44,6 +54,8 @@ import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.text.DateFormat;
 import java.util.Date;
+
+import static com.android.biketrack.utils.LocationUtils.getLocationText;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,7 +72,8 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String STAV = "STAV";
+
+    private static final String STATE_BUNDLE = "STATE_BUNDLE";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -101,7 +114,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
     private Bundle mSavedState = null;
 
-    // TODO mCurrentLocation = locationResult.getLastLocation();
+    private LocationReceiver mLocationReceiver;
+    private LocationRequest mLocationRequest;
+
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -110,6 +125,15 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         public void onServiceConnected(ComponentName name, IBinder service) {
             LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
             mService = binder.getService();
+
+            // Resuming location updates depending on button state and
+            // allowed permissions
+            if (mRequestingLocationUpdates && checkPermissions()) {
+                startLocationUpdates();
+            }
+
+            updateLocationUI();
+
             mBound = true;
         }
 
@@ -120,13 +144,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         }
     };
 
-    private MyReceiver myReceiver;
-
-
     /**
      * Receiver for broadcasts sent by {@link LocationUpdatesService}.
      */
-    private class MyReceiver extends BroadcastReceiver {
+    private class LocationReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             Location location = intent.getParcelableExtra(LocationUpdatesService.EXTRA_LOCATION);
@@ -144,9 +165,7 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
      */
     private void updateLocationUI() {
         if (mCurrentLocation != null) {
-            txtLocationResult.setText("Lat: " + mCurrentLocation.getLatitude() + ", " +
-                    "Lng: " + mCurrentLocation.getLongitude()
-            );
+            txtLocationResult.setText(getLocationText(mCurrentLocation));
 
             // Giving a blink animation on TextView
             txtLocationResult.setAlpha(0);
@@ -180,11 +199,11 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         mService.requestLocationUpdates();
         updateLocationUI();
 
-        //noinspection MissingPermission
+        // TODO noinspection MissingPermission
         //mFusedLocationClient.requestLocationUpdates(mLocationRequest,
         //        mLocationCallback, Looper.myLooper());
 
-        /*mSettingsClient
+        mSettingsClient
                 .checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
                     @SuppressLint("MissingPermission")
@@ -230,7 +249,7 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
                         updateLocationUI();
                     }
-                });*/
+                });
     }
 
     private boolean checkPermissions() {
@@ -319,7 +338,7 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         /* If the Fragment was destroyed inbetween (screen rotation), we need to recover the savedState first */
         /* However, if it was not, it stays in the instance from the last onDestroyView() and we don't want to overwrite it */
         if (savedInstanceState != null && mSavedState == null) {
-            mSavedState = savedInstanceState.getBundle(STAV);
+            mSavedState = savedInstanceState.getBundle(STATE_BUNDLE);
         }
         if (mSavedState != null) {
             if (mSavedState.containsKey("is_requesting_updates")) {
@@ -336,21 +355,22 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
         mSettingsClient = LocationServices.getSettingsClient(getActivity());
 
-        mRequestingLocationUpdates = false;
+        mRequestingLocationUpdates = LocationUtils.requestingLocationUpdates(getActivity());
 
-        /*mLocationRequest = new LocationRequest();
+        // TODO Location parameter from settings
+        mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(mLocationRequest);
-        mLocationSettingsRequest = builder.build();*/
+        mLocationSettingsRequest = builder.build();
 
         // Restore the values from saved instance state
         restoreValuesFromBundle(savedInstanceState);
 
-        myReceiver = new MyReceiver();
+        mLocationReceiver = new LocationReceiver();
     }
 
     @Override
@@ -423,21 +443,13 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     public void onResume() {
         super.onResume();
 
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(myReceiver,
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mLocationReceiver,
                 new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
-
-        // Resuming location updates depending on button state and
-        // allowed permissions
-        if (mRequestingLocationUpdates && checkPermissions()) {
-            startLocationUpdates();
-        }
-
-        updateLocationUI();
     }
 
     @Override
     public void onPause() {
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(myReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mLocationReceiver);
         super.onPause();
     }
 
@@ -463,10 +475,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        /* If onDestroyView() is called first, we can use the previously savedState but we can't call saveState() anymore */
-        /* If onSaveInstanceState() is called first, we don't have savedState, so we need to call saveState() */
-        /* => (?:) operator inevitable! */
-        outState.putBundle(STAV, (mSavedState != null) ? mSavedState : saveState());
+        // If onDestroyView() is called first, we can use the previously savedState but we can't
+        // call saveState() anymore. If onSaveInstanceState() is called first, we don't have savedState,
+        // so we need to call saveState().
+        outState.putBundle(STATE_BUNDLE, (mSavedState != null) ? mSavedState : saveState());
     }
 
     @Override
@@ -492,6 +504,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             getActivity().unbindService(mServiceConnection);
             mBound = false;
         }
+
+        LocationUtils.setRequestingLocationUpdates(getActivity(), mRequestingLocationUpdates);
+
         PreferenceManager.getDefaultSharedPreferences(getActivity())
                 .unregisterOnSharedPreferenceChangeListener(this);
         super.onStop();
