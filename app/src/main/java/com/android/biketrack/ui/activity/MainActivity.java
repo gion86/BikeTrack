@@ -1,11 +1,21 @@
 package com.android.biketrack.ui.activity;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -16,6 +26,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +42,13 @@ import com.android.biketrack.ui.fragment.SettingsFragment;
 public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
         ScanFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener {
 
+    private final static String TAG = MainActivity.class.getSimpleName();
+
     public static final String STATE_NAV_ITEM_INDEX = "NAV_ITEM_INDEX";
+
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 0;
+    private static final int REQUEST_ENABLE_BT = 1;
+
     private NavigationView mNavigationView;
     private DrawerLayout mDrawer;
     private View mNavHeader;
@@ -50,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
     // Flag to load home fragment when user presses back key
     private Handler mHandler;
+    private boolean mEnableBTReq;
+    private boolean mFirstDrawerOpen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         setContentView(R.layout.activity_main);
         mToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+
+        mEnableBTReq = false;
+        mFirstDrawerOpen = true;
 
         mHandler = new Handler();
 
@@ -99,6 +121,16 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         }
 
         loadFragment(mNavItemIndex);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mEnableBTReq) {
+            loadFragment(1);
+            mEnableBTReq = false;
+        }
     }
 
     @Override
@@ -187,12 +219,24 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
                 // Check to see which item was being clicked and perform appropriate action
                 switch (menuItem.getItemId()) {
-                    // Replacing the main content with ContentFragment Which is our Inbox View;
                     case R.id.nav_home:
                         mNavItemIndex = 0;
                         break;
                     case R.id.nav_scan:
                         mNavItemIndex = 1;
+
+                        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+                        final BluetoothAdapter bluetoothAdapter = bluetoothManager != null ? bluetoothManager.getAdapter() : null;
+
+                        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+                        // fire an intent to display a dialog asking the user to grant permission to enable it.
+                        if (!bluetoothAdapter.isEnabled()) {
+                            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                            mDrawer.closeDrawers();
+                            return false;
+                        }
+
                         break;
                     case R.id.nav_settings:
                         mNavItemIndex = 2;
@@ -206,12 +250,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                         mNavItemIndex = 0;
                 }
 
-                // Checking if the item is in checked state or not, if not make it in checked state
-                if (menuItem.isChecked()) {
-                    menuItem.setChecked(false);
-                } else {
-                    menuItem.setChecked(true);
-                }
                 menuItem.setChecked(true);
 
                 loadFragment(mNavItemIndex);
@@ -231,8 +269,51 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                // Code here will be triggered once the mDrawer open as we dont want anything to happen so we leave this blank
                 super.onDrawerOpened(drawerView);
+
+                final MenuItem scanBLEItem = mNavigationView.getMenu().getItem(1);
+
+                // Use this check to determine whether BLE is supported on the device. Then you can
+                // selectively disable BLE-related features.
+                if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                    if (mFirstDrawerOpen) {
+                        Toast.makeText(getApplicationContext(), R.string.ble_not_supported, Toast.LENGTH_LONG).show();
+                    }
+                    scanBLEItem.setEnabled(false);
+                }
+
+                final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+                final BluetoothAdapter bluetoothAdapter = bluetoothManager != null ? bluetoothManager.getAdapter() : null;
+
+                // Checks if Bluetooth is supported on the device.
+                if (bluetoothAdapter == null) {
+                    if (mFirstDrawerOpen) {
+                        Toast.makeText(getApplicationContext(), R.string.error_bluetooth_not_supported, Toast.LENGTH_LONG).show();
+                    }
+                    scanBLEItem.setEnabled(false);
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    // Android M Permission check
+                    if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                        builder.setTitle(R.string.Location_dialog_title);
+                        builder.setMessage(R.string.location_dialog_mes);
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                            PERMISSION_REQUEST_COARSE_LOCATION);
+                                }
+                            }
+                        });
+                        builder.show();
+                    }
+                }
+
+                mFirstDrawerOpen = false;
             }
         };
 
@@ -241,6 +322,38 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
         // Calling sync state is necessary or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.location_dis_title);
+                    builder.setMessage(R.string.location_dis_mes);
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+                    });
+                    builder.show();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_BT) {
+            mEnableBTReq = (resultCode == Activity.RESULT_OK);
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

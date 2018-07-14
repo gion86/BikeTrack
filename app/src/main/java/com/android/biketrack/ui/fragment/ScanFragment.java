@@ -1,8 +1,6 @@
 package com.android.biketrack.ui.fragment;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -14,17 +12,13 @@ import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -38,7 +32,6 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.biketrack.R;
 import com.android.biketrack.service.ble.BluetoothLeHRService;
@@ -62,7 +55,7 @@ public class ScanFragment extends Fragment {
     private final static String TAG = ScanFragment.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
-    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 0;
+//    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 0;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
 
@@ -111,6 +104,7 @@ public class ScanFragment extends Fragment {
             if (!mBluetoothLeHRService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 // TODO finish();
+                return;
             }
             // Automatically connects to the device upon successful start-up initialization.
             // TODO mBluetoothLeHRService.connect(mDeviceAddress);
@@ -231,44 +225,11 @@ public class ScanFragment extends Fragment {
 
         mHandler = new Handler();
 
-        // Use this check to determine whether BLE is supported on the device.  Then you can
-        // selectively disable BLE-related features.
-        if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(getActivity(), R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            // TODO finish();
-        }
-
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
-        // BluetoothAdapter through BluetoothManager.
+        // Initializes a Bluetooth adapter. The BLE system support has been check in activity.
+        // For API level 18 and above, get a reference to BluetoothAdapter through BluetoothManager.
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getActivity().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager != null ? bluetoothManager.getAdapter() : null;
-
-        // Checks if Bluetooth is supported on the device.
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(getActivity(), R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
-            // TODO finish();
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android M Permission check
-            if (getActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle(R.string.Location_dialog_title);
-                builder.setMessage(R.string.location_dialog_mes);
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-                        }
-                    }
-                });
-                builder.show();
-            }
-        }
 
         mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
@@ -353,27 +314,6 @@ public class ScanFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_COARSE_LOCATION: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "coarse location permission granted");
-                } else {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                    builder.setTitle(R.string.location_dis_title);
-                    builder.setMessage(R.string.location_dis_mes);
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                        }
-                    });
-                    builder.show();
-                }
-            }
-        }
-    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -383,10 +323,11 @@ public class ScanFragment extends Fragment {
         if (!mScanning) {
             menu.findItem(R.id.menu_stop).setEnabled(false);
             menu.findItem(R.id.menu_scan).setEnabled(true);
-            menu.findItem(R.id.menu_refresh).setActionView(null);
+            menu.findItem(R.id.menu_refresh).setVisible(false);
         } else {
             menu.findItem(R.id.menu_stop).setEnabled(true);
             menu.findItem(R.id.menu_scan).setEnabled(false);
+            menu.findItem(R.id.menu_refresh).setVisible(true);
             menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
         }
     }
@@ -397,7 +338,16 @@ public class ScanFragment extends Fragment {
             case R.id.menu_scan:
                 mLeDeviceListAdapter.clear();
                 mLeDeviceListAdapter.notifyDataSetInvalidated();
-                scanLeDevice(true);
+
+                // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+                // fire an intent to display a dialog asking the user to grant permission to enable it.
+                if (!mBluetoothAdapter.isEnabled()) {
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                } else {
+                    scanLeDevice(true);
+                }
+
                 break;
             case R.id.menu_stop:
                 scanLeDevice(false);
@@ -421,14 +371,10 @@ public class ScanFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-        // fire an intent to display a dialog asking the user to grant permission to enable it.
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        // Ensures Bluetooth is enabled on the device, than start scan by default.
+        if (mBluetoothAdapter.isEnabled()) {
+            scanLeDevice(true);
         }
-
-        scanLeDevice(true);
 
         getActivity().registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
@@ -441,8 +387,8 @@ public class ScanFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // User chose not to enable Bluetooth.
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            // TODO finish();
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
+            scanLeDevice(true);
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -483,17 +429,20 @@ public class ScanFragment extends Fragment {
                 @Override
                 public void run() {
                     mScanning = false;
-                    mBluetoothLeScanner.stopScan(mLeScanCallback);
-                    // TODO getActivity().invalidateOptionsMenu();
+                    if (mBluetoothAdapter.isEnabled()) {
+                        mBluetoothLeScanner.stopScan(mLeScanCallback);
+                    }
+                    getActivity().invalidateOptionsMenu();
                 }
             }, SCAN_PERIOD);
 
             mScanning = true;
-            // FIXME mLeScanCallback null if BlueTooth is off
             mBluetoothLeScanner.startScan(mLeScanCallback);
         } else {
             mScanning = false;
-            mBluetoothLeScanner.stopScan(mLeScanCallback);
+            if (mBluetoothAdapter.isEnabled()) {
+                mBluetoothLeScanner.stopScan(mLeScanCallback);
+            }
         }
         getActivity().invalidateOptionsMenu();
     }
