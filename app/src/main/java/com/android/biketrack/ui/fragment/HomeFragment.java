@@ -199,10 +199,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         mService.requestLocationUpdates();
         updateLocationUI();
 
-        // TODO noinspection MissingPermission
-        //mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-        //        mLocationCallback, Looper.myLooper());
-
         mSettingsClient
                 .checkLocationSettings(mLocationSettingsRequest)
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {

@@ -103,7 +103,6 @@ public class ScanFragment extends Fragment {
             mBluetoothLeHRService = ((BluetoothLeHRService.LocalBinder) service).getService();
             if (!mBluetoothLeHRService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
-                // TODO finish();
                 return;
             }
             // Automatically connects to the device upon successful start-up initialization.
@@ -274,8 +273,11 @@ public class ScanFragment extends Fragment {
         });
     }
 
-    // Demonstrates how to iterate through the supported GATT Services/Characteristics.
-    // In this sample.. . TODO
+    /**
+     * Iterate through the supported GATT Services/Characteristics. When and heart rate characteristic
+     * is found, a notification is set, and the current value is requested thorough
+     * {@link BluetoothLeHRService#readCharacteristic(BluetoothGattCharacteristic)}.
+     */
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
         String uuid = null;
