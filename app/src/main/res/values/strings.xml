@@ -26,9 +26,6 @@
     <string name="launch_activity">Launch activity</string>
     <string name="remove_location_updates">Remove location updates</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
     <!-- Generic -->
     <string name="generic_progress_title">Please wait&#8230;</string>
     <string name="generic_yes">Yes</string>
@@ -111,5 +108,21 @@
     <string name="files_other">%1$d files</string>
     <string name="files_two">2 files</string>
     <string name="files_zero">0 files</string>
+
+
+    <!-- Preference screen -->
+
+    <string name="preferences_category_one">Position</string>
+    <string name="preferences_category_two">Bike</string>
+
+    <string name="preferences_switch_title">Switch Preference</string>
+    <string name="preferences_switch_summ">Switch Summary</string>
+
+    <string name="preferences_edittext_title">Bike name</string>
+    <string name="preferences_edittext_summ">Your bike name</string>
+    <string name="preferences_edittext_message">Give a name to your ride:</string>
+
+    <string name="preferences_checkbox_title">CheckBox Preference</string>
+    <string name="preferences_checkbox_summ">CheckBox Summary</string>
 
 </resources>

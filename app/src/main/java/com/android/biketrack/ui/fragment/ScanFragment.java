@@ -442,6 +442,8 @@ public class ScanFragment extends Fragment {
             mBluetoothLeScanner.startScan(mLeScanCallback);
         } else {
             mScanning = false;
+            mHandler.removeCallbacksAndMessages(null);
+
             if (mBluetoothAdapter.isEnabled()) {
                 mBluetoothLeScanner.stopScan(mLeScanCallback);
             }

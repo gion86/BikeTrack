@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/preferences_category_one">
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/pref_pref1"
+            android:summary="@string/preferences_switch_summ"
+            android:title="@string/preferences_switch_title"/>
+
+        <android.support.v7.preference.CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/pref_pref3"
+            android:summary="@string/preferences_checkbox_summ"
+            android:title="@string/preferences_checkbox_title"/>
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/preferences_category_two">
+
+        <android.support.v7.preference.EditTextPreference
+            android:dialogLayout="@layout/pref_dialog_edittext_fix"
+            android:dialogMessage="@string/preferences_edittext_message"
+            android:inputType="number"
+            android:key="@string/prefkey_bike_name"
+            android:summary="@string/preferences_edittext_summ"
+            android:title="@string/preferences_edittext_title"/>
+
+    </android.support.v7.preference.PreferenceCategory>
+
+</android.support.v7.preference.PreferenceScreen>

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -40,7 +42,7 @@ import com.android.biketrack.ui.fragment.ScanFragment;
 import com.android.biketrack.ui.fragment.SettingsFragment;
 
 public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
-        ScanFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener {
+        ScanFragment.OnFragmentInteractionListener {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
@@ -52,9 +54,9 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     private NavigationView mNavigationView;
     private DrawerLayout mDrawer;
     private View mNavHeader;
-    private TextView mTxtName, mTxtWebsite;
+    private TextView mTxtAppName, mTxtBikeName;
     private Toolbar mToolbar;
-    private FloatingActionButton mStartButtton;
+    private FloatingActionButton mStartButton;
 
     // Index to identify current nav menu item
     public static int mNavItemIndex = 0;
@@ -65,8 +67,9 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     // Toolbar titles respected to selected nav menu item
     private String[] mFragmentTitles;
 
-    // Flag to load home fragment when user presses back key
     private Handler mHandler;
+    private SharedPreferences mSettings;
+
     private boolean mEnableBTReq;
     private boolean mFirstDrawerOpen;
 
@@ -84,22 +87,19 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
         mDrawer = findViewById(R.id.drawer_layout);
         mNavigationView = findViewById(R.id.nav_view);
-        mStartButtton = findViewById(R.id.fab);
+        mStartButton = findViewById(R.id.fab);
 
         // Navigation view header
         mNavHeader = mNavigationView.getHeaderView(0);
-        mTxtName = mNavHeader.findViewById(R.id.name);
-        mTxtWebsite = mNavHeader.findViewById(R.id.website);
+        mTxtAppName = mNavHeader.findViewById(R.id.app_name);
+        mTxtBikeName = mNavHeader.findViewById(R.id.bike_name);
 
         // Load toolbar titles from string resources
         mFragmentTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
-        mStartButtton.setOnClickListener(new View.OnClickListener() {
+        mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //return new Intent(context, cls).addFlags(
-                //        Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
                 Intent intent = new Intent(getApplicationContext(), SaveActivity.class)
                         .putExtra(SaveActivity.EXTRA_TRACK_IDS, new long[] { 0 })
                         .putExtra(SaveActivity.EXTRA_TRACK_FILE_FORMAT, (Parcelable) TrackFileFormat.TCX);
@@ -107,9 +107,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             }
         });
 
+        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+
         // Set nav menu header data
-        mTxtName.setText(getString(R.string.app_name));
-        mTxtWebsite.setText("Merida BIG Nine 900");  // TODO Bike name preference
+        mTxtAppName.setText(getString(R.string.app_name));
 
         // Initializing navigation menu
         setUpNavigationView();
@@ -271,6 +272,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
+                mTxtBikeName.setText(mSettings.getString(getString(R.string.prefkey_bike_name), ""));
+
                 final MenuItem scanBLEItem = mNavigationView.getMenu().getItem(1);
 
                 // Use this check to determine whether BLE is supported on the device. Then you can
@@ -400,12 +403,12 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         return super.onOptionsItemSelected(item);
     }
 
-    // show or hide the mStartButtton
+    // show or hide the mStartButton
     private void toggleFab() {
         if (mNavItemIndex == 0)
-            mStartButtton.show();
+            mStartButton.show();
         else
-            mStartButtton.hide();
+            mStartButton.hide();
     }
 
     @Override
