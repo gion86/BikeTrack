@@ -55,7 +55,6 @@ public class ScanFragment extends Fragment {
     private final static String TAG = ScanFragment.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
-//    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 0;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
 

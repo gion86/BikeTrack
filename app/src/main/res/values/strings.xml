@@ -113,6 +113,8 @@
     <!-- Preference screen -->
 
     <string name="preferences_category_one">Position</string>
+    <string name="pos_int_title">Position update interval [s]</string>
+
     <string name="preferences_category_two">Bike</string>
 
     <string name="preferences_switch_title">Switch Preference</string>

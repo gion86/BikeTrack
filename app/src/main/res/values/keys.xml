@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-Copyright 2010 Google Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
 <resources>
-  <!-- Keys for persisted preferences. Sorted alphabetically. DO NOT TRANSLATE. -->
-  <string name="stats_units_key">statsUnits</string>
+    <!-- Keys for persisted preferences. Sorted alphabetically. DO NOT TRANSLATE. -->
+    <string name="stats_units_key" translatable="false">statsUnits</string>
 
-    <!-- Keys for persistent preferences. But they should not get backed up or restored. -->
+    <string name="pref_pref1" translatable="false">pref_pref1</string>
+    <string name="pref_pref3" translatable="false">pref_pref3</string>
+    <string name="pref_pref4" translatable="false">pref_pref4</string>
 
-  <!-- Keys for non-persisted preferences. Sorted alphabetically. DO NOT TRANSLATE. -->
+    <!-- Category: bike -->
+    <string name="prefkey_bike_name" translatable="false">bike_name</string>
+    <string name="prefkey_pos_int" translatable="false">prefkey_pos_int</string>
+
+    <!-- Keys for non-persisted preferences. Sorted alphabetically. DO NOT TRANSLATE. -->
 
 </resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="pos_int_default_value">10</integer>
+    <integer name="pos_int_min_value">10</integer>
+    <integer name="pos_int_max_value">120</integer>
+</resources>

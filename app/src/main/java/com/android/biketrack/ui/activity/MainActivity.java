@@ -264,7 +264,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
             @Override
             public void onDrawerClosed(View drawerView) {
-                // Code here will be triggered once the mDrawer closes as we dont want anything to happen so we leave this blank
                 super.onDrawerClosed(drawerView);
             }
 
