@@ -10,7 +10,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,8 +40,7 @@ import com.android.biketrack.ui.fragment.HomeFragment;
 import com.android.biketrack.ui.fragment.ScanFragment;
 import com.android.biketrack.ui.fragment.SettingsFragment;
 
-public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
-        ScanFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
@@ -190,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         switch (mNavItemIndex) {
             case 0:
                 // Home
-                return new HomeFragment();
+                return HomeFragment.newInstance();
             case 1:
                 // Scan BLE devices
                 return new ScanFragment();
@@ -408,10 +406,5 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             mStartButton.show();
         else
             mStartButton.hide();
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 }
