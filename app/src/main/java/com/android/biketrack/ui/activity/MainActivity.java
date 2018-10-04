@@ -34,11 +34,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.biketrack.Constants;
 import com.android.biketrack.R;
 import com.android.biketrack.io.file.TrackFileFormat;
 import com.android.biketrack.ui.fragment.HomeFragment;
 import com.android.biketrack.ui.fragment.ScanFragment;
 import com.android.biketrack.ui.fragment.SettingsFragment;
+import com.android.biketrack.utils.PreferencesUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private String[] mFragmentTitles;
 
     private Handler mHandler;
-    private SharedPreferences mSettings;
 
     private boolean mEnableBTReq;
     private boolean mFirstDrawerOpen;
@@ -104,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Set nav menu header data
         mTxtAppName.setText(getString(R.string.app_name));
@@ -269,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
-                mTxtBikeName.setText(mSettings.getString(getString(R.string.prefkey_bike_name), ""));
+                mTxtBikeName.setText(PreferencesUtils.getString(getApplicationContext(), R.string.prefkey_bike_name, ""));
 
                 final MenuItem scanBLEItem = mNavigationView.getMenu().getItem(1);
 

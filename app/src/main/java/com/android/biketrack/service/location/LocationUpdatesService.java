@@ -1,19 +1,18 @@
-/**
- * Copyright 2017 Google Inc. All Rights Reserved.
+/*
+ * This file is part of BikeTrack application.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
-
 package com.android.biketrack.service.location;
 
 import android.app.ActivityManager;
@@ -24,6 +23,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
@@ -39,7 +39,7 @@ import android.util.Log;
 
 import com.android.biketrack.R;
 import com.android.biketrack.ui.activity.MainActivity;
-import com.android.biketrack.utils.LocationUtils;
+import com.android.biketrack.utils.PreferencesUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -57,7 +57,6 @@ import java.util.Date;
 
 import static com.android.biketrack.utils.LocationUtils.getLocationText;
 import static com.android.biketrack.utils.LocationUtils.getLocationTitle;
-import static com.android.biketrack.utils.LocationUtils.setRequestingLocationUpdates;
 
 /**
  * A bound and started service that is promoted to a foreground service when location updates have
@@ -71,7 +70,7 @@ import static com.android.biketrack.utils.LocationUtils.setRequestingLocationUpd
  * bound to this service, frequent location updates are permitted. When the activity is removed
  * from the foreground, the service promotes itself to a foreground service, and location updates
  * continue. When the activity comes back to the foreground, the foreground service stops, and the
- * notification assocaited with that service is removed.
+ * notification associated with that service is removed.
  */
 public class LocationUpdatesService extends Service {
     private static final String TAG = LocationUpdatesService.class.getSimpleName();
@@ -93,14 +92,13 @@ public class LocationUpdatesService extends Service {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 25000;
+    private static final int UPDATE_INTERVAL = 25;
 
     /**
      * The fastest rate for active location updates. Updates will never be more frequent
      * than this value.
      */
-    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 15000;
-            //UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+    private static final int FASTEST_UPDATE_INTERVAL = 15;
 
     /**
      * The identifier for the notification displayed for the foreground service.
@@ -138,6 +136,19 @@ public class LocationUpdatesService extends Service {
 
     private Location mLocation;
 
+    private SharedPreferences.OnSharedPreferenceChangeListener mSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals(getString(R.string.prefkey_pos_int))){
+                int updateInt = sharedPreferences.getInt(key, UPDATE_INTERVAL);
+                mLocationRequest.setInterval((long) updateInt * 1000);
+            } else if (key.equals(getString(R.string.prefkey_fast_up))){
+                int fastestUpdate = sharedPreferences.getInt(key, FASTEST_UPDATE_INTERVAL);
+                mLocationRequest.setFastestInterval((long) fastestUpdate * 1000);
+            }
+        }
+    };
+
     public LocationUpdatesService() {
     }
 
@@ -171,6 +182,8 @@ public class LocationUpdatesService extends Service {
             // Set the Notification Channel for the Notification Manager.
             mNotificationManager.createNotificationChannel(mChannel);
         }
+
+        PreferencesUtils.getSP(this).registerOnSharedPreferenceChangeListener(mSharedPreferenceChangeListener);
     }
 
     @Override
@@ -223,7 +236,7 @@ public class LocationUpdatesService extends Service {
         // Called when the last client (MainActivity in case of this sample) unbinds from this
         // service. If this method is called due to a configuration change in MainActivity, we
         // do nothing. Otherwise, we make this service a foreground service.
-        if (!mChangingConfiguration && LocationUtils.requestingLocationUpdates(this)) {
+        if (!mChangingConfiguration && PreferencesUtils.getBoolean(this, R.string.prefkey_req_loc_updates, false)) {
             Log.i(TAG, "Starting foreground service");
             startForeground(NOTIFICATION_ID, getNotification());
         }
@@ -241,7 +254,7 @@ public class LocationUpdatesService extends Service {
      */
     public void requestLocationUpdates() {
         Log.i(TAG, "Requesting location updates");
-        setRequestingLocationUpdates(this, true);
+        PreferencesUtils.setBoolean(this, R.string.prefkey_req_loc_updates, true);
         startService(new Intent(getApplicationContext(), LocationUpdatesService.class));
         try {
             mFusedLocationClient.requestLocationUpdates(mLocationRequest,
@@ -349,8 +362,12 @@ public class LocationUpdatesService extends Service {
      */
     private void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        int updateInt = PreferencesUtils.getInt(this, R.string.prefkey_pos_int, UPDATE_INTERVAL);
+        int fastestUpdate = PreferencesUtils.getInt(this, R.string.prefkey_fast_up, FASTEST_UPDATE_INTERVAL);
+
+        mLocationRequest.setInterval((long) updateInt * 1000);
+        mLocationRequest.setFastestInterval((long) fastestUpdate * 1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 

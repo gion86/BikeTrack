@@ -114,6 +114,7 @@
 
     <string name="preferences_category_one">Position</string>
     <string name="pos_int_title">Position update interval [s]</string>
+    <string name="fast_up_title">Position fastest update interval [s]</string>
 
     <string name="preferences_category_two">Bike</string>
 

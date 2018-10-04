@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * This file is part of BikeTrack application.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,30 +26,15 @@ import java.text.DateFormat;
 import java.util.Date;
 
 // TODO library for utilities
+
+/**
+ * Utilities for {@link Location} manipulation.
+ *
+ * Taken from MyTracks Google application source code.
+ *
+ * @author Gionata Boccalini
+ */
 public class LocationUtils {
-
-    public static final String KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
-
-    /**
-     * Returns true if requesting location updates, otherwise returns false.
-     *
-     * @param context The {@link Context}.
-     */
-    public static boolean requestingLocationUpdates(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(KEY_REQUESTING_LOCATION_UPDATES, false);
-    }
-
-    /**
-     * Stores the location updates state in SharedPreferences.
-     * @param requestingLocationUpdates The location updates state.
-     */
-    public static void setRequestingLocationUpdates(Context context, boolean requestingLocationUpdates) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putBoolean(KEY_REQUESTING_LOCATION_UPDATES, requestingLocationUpdates)
-                .apply();
-    }
 
     /**
      * Returns the {@code location} object as a human readable string.

@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.android.biketrack.R;
 import com.android.biketrack.service.location.LocationUpdatesService;
 import com.android.biketrack.utils.LocationUtils;
+import com.android.biketrack.utils.PreferencesUtils;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
@@ -66,6 +67,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     private static final String TAG = HomeFragment.class.getSimpleName();
 
     private static final String STATE_BUNDLE = "STATE_BUNDLE";
+    private static final String IS_REQUESTING_UPDATES = "bundle_is_requesting_updates";
+    private static final String LAST_KNOWN_LOCATION = "bundle_last_known_location";
+    private static final String LAST_UPDATED_ON = "bundle_last_updated_on";
 
     TextView txtLocationResult;
     TextView txtUpdatedOn;
@@ -75,14 +79,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
     // Location last updated time
     private String mLastUpdateTime;
-
-    // Location updates interval - 10sec
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-
-    // Fastest updates interval - 5 sec
-    // Location updates will be received if another app is requesting the locations
-    // than your app can handle
-    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 5000;
 
     private static final int REQUEST_CHECK_SETTINGS = 100;
 
@@ -102,7 +98,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
     private LocationReceiver mLocationReceiver;
     private LocationRequest mLocationRequest;
-
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -313,34 +308,30 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             mSavedState = savedInstanceState.getBundle(STATE_BUNDLE);
         }
         if (mSavedState != null) {
-            if (mSavedState.containsKey("is_requesting_updates")) {
-                mRequestingLocationUpdates = mSavedState.getBoolean("is_requesting_updates");
+            if (mSavedState.containsKey(IS_REQUESTING_UPDATES)) {
+                mRequestingLocationUpdates = mSavedState.getBoolean(IS_REQUESTING_UPDATES);
+            } else {
+                mRequestingLocationUpdates = PreferencesUtils.getBoolean(getActivity(), R.string.prefkey_req_loc_updates, false);
             }
-            if (savedInstanceState.containsKey("last_known_location")) {
-                mCurrentLocation = mSavedState.getParcelable("last_known_location");
+            if (mSavedState.containsKey(LAST_KNOWN_LOCATION)) {
+                mCurrentLocation = mSavedState.getParcelable(LAST_KNOWN_LOCATION);
             }
-            if (savedInstanceState.containsKey("last_updated_on")) {
-                mLastUpdateTime = mSavedState.getString("last_updated_on");
+            if (mSavedState.containsKey(LAST_UPDATED_ON)) {
+                mLastUpdateTime = mSavedState.getString(LAST_UPDATED_ON);
             }
+        } else {
+            mRequestingLocationUpdates = PreferencesUtils.getBoolean(getActivity(), R.string.prefkey_req_loc_updates, false);
         }
+
         mSavedState = null;
 
         mSettingsClient = LocationServices.getSettingsClient(getActivity());
 
-        mRequestingLocationUpdates = LocationUtils.requestingLocationUpdates(getActivity());
-
-        // TODO Location parameter from settings
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(mLocationRequest);
         mLocationSettingsRequest = builder.build();
-
-        // Restore the values from saved instance state
-        restoreValuesFromBundle(savedInstanceState);
 
         mLocationReceiver = new LocationReceiver();
     }
@@ -407,25 +398,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         super.onPause();
     }
 
-    /**
-     * Restoring values from saved instance state
-     */
-    private void restoreValuesFromBundle(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("is_requesting_updates")) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean("is_requesting_updates");
-            }
-
-            if (savedInstanceState.containsKey("last_known_location")) {
-                mCurrentLocation = savedInstanceState.getParcelable("last_known_location");
-            }
-
-            if (savedInstanceState.containsKey("last_updated_on")) {
-                mLastUpdateTime = savedInstanceState.getString("last_updated_on");
-            }
-        }
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -443,9 +415,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
     private Bundle saveState() { /* called either from onDestroyView() or onSaveInstanceState() */
         Bundle state = new Bundle();
-        state.putBoolean("is_requesting_updates", mRequestingLocationUpdates);
-        state.putParcelable("last_known_location", mCurrentLocation);
-        state.putString("last_updated_on", mLastUpdateTime);
+        state.putBoolean(IS_REQUESTING_UPDATES, mRequestingLocationUpdates);
+        state.putParcelable(LAST_KNOWN_LOCATION, mCurrentLocation);
+        state.putString(LAST_UPDATED_ON, mLastUpdateTime);
         return state;
     }
 
@@ -459,7 +431,7 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             mBound = false;
         }
 
-        LocationUtils.setRequestingLocationUpdates(getActivity(), mRequestingLocationUpdates);
+        PreferencesUtils.setBoolean(getActivity(), R.string.prefkey_req_loc_updates, mRequestingLocationUpdates);
 
         PreferenceManager.getDefaultSharedPreferences(getActivity())
                 .unregisterOnSharedPreferenceChangeListener(this);
@@ -472,11 +444,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Update the buttons state depending on whether location updates are being requested.
-        if (s.equals(LocationUtils.KEY_REQUESTING_LOCATION_UPDATES)) {
-            mRequestingLocationUpdates = sharedPreferences.getBoolean(LocationUtils.KEY_REQUESTING_LOCATION_UPDATES,
-                    false);
+        if (key.equals(getString(R.string.prefkey_req_loc_updates))) {
+            mRequestingLocationUpdates = sharedPreferences.getBoolean(key, false);
             toggleButtons();
         }
     }

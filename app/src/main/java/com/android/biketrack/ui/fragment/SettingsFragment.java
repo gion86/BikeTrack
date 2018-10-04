@@ -9,6 +9,7 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 
+import com.android.biketrack.Constants;
 import com.android.biketrack.R;
 import com.android.biketrack.ui.preferences.NumberPickerPreference;
 import com.android.biketrack.ui.preferences.NumberPickerPreferenceFragmentCompat;
@@ -32,6 +33,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
      */
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
+
+        // Define the settings file to use by this settings fragment
+        getPreferenceManager().setSharedPreferencesName(Constants.SETTINGS_FILE_NAME);
+
         // Load the Preferences from the XML file.
         addPreferencesFromResource(R.xml.fragment_settings);
     }

@@ -3,4 +3,8 @@
     <integer name="pos_int_default_value">10</integer>
     <integer name="pos_int_min_value">10</integer>
     <integer name="pos_int_max_value">120</integer>
+
+    <integer name="fast_up_default_value">5</integer>
+    <integer name="fast_up_min_value">5</integer>
+    <integer name="fast_up_max_value">20</integer>
 </resources>

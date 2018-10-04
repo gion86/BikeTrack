@@ -16,17 +16,13 @@
             preference:minValue="@integer/pos_int_min_value"
             preference:wrapSelectorWheel="false"/>
 
-        <android.support.v7.preference.SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="@string/pref_pref1"
-            android:summary="@string/preferences_switch_summ"
-            android:title="@string/preferences_switch_title"/>
-
-        <android.support.v7.preference.CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/pref_pref3"
-            android:summary="@string/preferences_checkbox_summ"
-            android:title="@string/preferences_checkbox_title"/>
+        <com.android.biketrack.ui.preferences.NumberPickerPreference
+            android:defaultValue="@integer/fast_up_default_value"
+            android:key="@string/prefkey_fast_up"
+            android:title="@string/fast_up_title"
+            preference:maxValue="@integer/fast_up_max_value"
+            preference:minValue="@integer/fast_up_min_value"
+            preference:wrapSelectorWheel="false"/>
 
     </android.support.v7.preference.PreferenceCategory>
 

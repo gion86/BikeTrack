@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Google Inc.
+ * This file is part of BikeTrack application.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,13 +13,14 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.android.biketrack;
 
 /**
  * Common constants.
- * 
- * @author Leif Hendrik Wilden
+ *
+ * Taken from MyTracks Google application source code.
+ *
+ * @author Gionata Boccalini
  */
 public class Constants {
 
@@ -38,5 +39,5 @@ public class Constants {
   /**
    * The settings file name.
    */
-  public static final String SETTINGS_NAME = "SettingsActivity";
+  public static final String SETTINGS_FILE_NAME = "com.android.biketrack.pref_data";
 }
