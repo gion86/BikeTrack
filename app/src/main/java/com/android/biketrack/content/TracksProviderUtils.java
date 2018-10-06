@@ -30,7 +30,7 @@ import java.util.List;
  * 
  * @author Rodrigo Damazio
  */
-public interface MyTracksProviderUtils {
+public interface TracksProviderUtils {
 
   /**
    * The authority (the first part of the URI) for the My Tracks content
@@ -92,7 +92,6 @@ public interface MyTracksProviderUtils {
    * Updates a track.
    * <p>
    * Note: This doesn't update any track points.
-   * 
    * @param track the track
    */
   public void updateTrack(Track track);
@@ -285,7 +284,7 @@ public interface MyTracksProviderUtils {
   };
 
   /**
-   * A factory which can produce instances of {@link MyTracksProviderUtils}, and
+   * A factory which can produce instances of {@link TracksProviderUtils}, and
    * can be overridden for testing.
    */
   public static class Factory {
@@ -293,11 +292,11 @@ public interface MyTracksProviderUtils {
     private static Factory instance = new Factory();
 
     /**
-     * Creates an instance of {@link MyTracksProviderUtils}.
+     * Creates an instance of {@link TracksProviderUtils}.
      * 
      * @param context the context
      */
-    public static MyTracksProviderUtils get(Context context) {
+    public static TracksProviderUtils get(Context context) {
       return instance.newForContext(context);
     }
 
@@ -319,13 +318,13 @@ public interface MyTracksProviderUtils {
     }
 
     /**
-     * Creates an instance of {@link MyTracksProviderUtils}. Allows subclasses
+     * Creates an instance of {@link TracksProviderUtils}. Allows subclasses
      * to override for testing.
      * 
      * @param context the context
      */
-    protected MyTracksProviderUtils newForContext(Context context) {
-      return new MyTracksProviderUtilsImpl(context.getContentResolver());
+    protected TracksProviderUtils newForContext(Context context) {
+      return new TracksProviderUtilsImpl(context.getContentResolver());
     }
   }
 }

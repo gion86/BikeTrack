@@ -23,56 +23,30 @@ import android.net.Uri;
 
 import com.android.biketrack.stats.TripStatistics;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link MyTracksProviderUtils} implementation.
- * 
+ * {@link TracksProviderUtils} implementation.
+ *
  * @author Leif Hendrik Wilden
  */
-public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
+public class TracksProviderUtilsImpl implements TracksProviderUtils {
 
-  private static final String TAG = MyTracksProviderUtilsImpl.class.getSimpleName();
+    private static final String TAG = TracksProviderUtilsImpl.class.getSimpleName();
 
-  private static final int MAX_LATITUDE = 90000000;
+    private static final int MAX_LATITUDE = 90000000;
 
-  private final ContentResolver contentResolver;
-  private int defaultCursorBatchSize = 2000;
+    private final ContentResolver mContentResolver;
+    private int defaultCursorBatchSize = 2000;
 
-  public MyTracksProviderUtilsImpl(ContentResolver contentResolver) {
-    this.contentResolver = contentResolver;
-  }
 
-  @Override
-  public void clearTrack(Context context, long trackId) {
-    //deleteTrackPointsAndWaypoints(context, trackId);
-    Track track = new Track();
-    track.setId(trackId);
-    updateTrack(track);
-  }
+    // Temporary implementation of track DB.
+    private ArrayList<Track> mTracks = new ArrayList<Track>();
 
-    @Override
-    public void deleteAllTracks(Context context) {
+    public TracksProviderUtilsImpl(ContentResolver contentResolver) {
+        this.mContentResolver = contentResolver;
 
-    }
-
-    @Override
-    public void deleteTrack(Context context, long trackId) {
-
-    }
-
-    @Override
-    public List<Track> getAllTracks() {
-        return null;
-    }
-
-    @Override
-    public Track getLastTrack() {
-        return null;
-    }
-
-    @Override
-    public Track getTrack(long trackId) {
         Track track = new Track();
         TripStatistics tripStatistics = track.getTripStatistics();
 
@@ -81,7 +55,7 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
         track.setDescription("Test description");
         track.setCategory("Test category");
         track.setStartId(0);
-        track.setStopId(100);
+        //track.setStopId(100);
         tripStatistics.setStartTime(998888);
         tripStatistics.setStopTime(2323782);
         track.setNumberOfPoints(10);
@@ -89,22 +63,59 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
         tripStatistics.setTotalTime(34224444);
         tripStatistics.setMovingTime(324243);
 
-        return track;
+        mTracks.add(track);
     }
 
     @Override
-    public Uri insertTrack(Track track) {
+    public void clearTrack(Context context, long trackId) {
+        //deleteTrackPointsAndWaypoints(context, trackId);
+        Track track = new Track();
+        track.setId(trackId);
+        updateTrack(track);
+    }
+
+    @Override
+    public void deleteAllTracks(Context context) {
+        mTracks.clear();
+    }
+
+    @Override
+    public void deleteTrack(Context context, long trackId) {
+        mTracks.remove((int) trackId);
+    }
+
+    @Override
+    public List<Track> getAllTracks() {
+        return mTracks.subList(0, mTracks.size() - 1);
+    }
+
+    @Override
+    public Track getLastTrack() {
+        return  mTracks.get(mTracks.size() - 1);
+    }
+
+    @Override
+    public Track getTrack(long trackId) {
+        if (trackId >= 0 && trackId < mTracks.size()) {
+            return mTracks.get((int) trackId);
+        }
         return null;
     }
 
     @Override
-    public void updateTrack(Track track) {
+    public Uri insertTrack(Track track) {
+        track.setId(mTracks.size());
+        mTracks.add(track);
+        return Uri.parse("http://example.com/foo/bar/" + track.getId());
+    }
 
+    @Override
+    public void updateTrack(Track track) {
+        mTracks.set((int) track.getId(), track);
     }
 
     @Override
     public void deleteWaypoint(Context context, long waypointId) {
-
     }
 
     @Override
@@ -184,7 +195,7 @@ public class MyTracksProviderUtilsImpl implements MyTracksProviderUtils {
 
     @Override
     public Uri insertTrackPoint(Location location, long trackId) {
-        return null;
+        int locID = mTracks.get((int) trackId).addLocation(location);
+        return Uri.parse("http://example.com/foo/bar/" + locID);
     }
-
 }

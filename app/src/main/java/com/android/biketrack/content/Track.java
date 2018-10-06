@@ -26,211 +26,213 @@ import java.util.ArrayList;
 
 /**
  * A track.
- * 
+ *
  * @author Leif Hendrik Wilden
  * @author Rodrigo Damazio
  */
 public class Track implements Parcelable {
 
-  private long id = -1L;
-  private String name = "";
-  private String description = "";
-  private String category = "";
-  private long startId = -1L;
-  private long stopId = -1L;
+    private long id = -1L;
+    private String name = "";
+    private String description = "";
+    private String category = "";
+    private long startId = -1L;
+    private long stopId = -1L;
 
-  /*
-   * The number of location points (present even if the points themselves are
-   * not loaded)
-   */
-  private int numberOfPoints = 0;
-  private String icon = "";
-  private String driveId = "";
-  private long modifiedTime = -1L;
-  private boolean sharedWithMe = false;
-  private String sharedOwner = "";
+    /*
+     * The number of location points (present even if the points themselves are
+     * not loaded)
+     */
+    private int numberOfPoints = 0;
+    private String icon = "";
+    private String driveId = "";
+    private long modifiedTime = -1L;
+    private boolean sharedWithMe = false;
+    private String sharedOwner = "";
 
-  private TripStatistics tripStatistics = new TripStatistics();
+    private TripStatistics tripStatistics = new TripStatistics();
 
-  // Location points (which may not have been loaded)
-  private ArrayList<Location> locations = new ArrayList<Location>();
+    // Location points (which may not have been loaded)
+    private ArrayList<Location> locations = new ArrayList<Location>();
 
-  public Track() {}
-
-  private Track(Parcel in) {
-    id = in.readLong();
-    name = in.readString();
-    description = in.readString();
-    category = in.readString();
-    startId = in.readLong();
-    stopId = in.readLong();
-    numberOfPoints = in.readInt();
-    icon = in.readString();
-    driveId = in.readString();
-    modifiedTime = in.readLong();
-    sharedWithMe = in.readByte() == 1;
-    sharedOwner = in.readString();
-
-    ClassLoader classLoader = getClass().getClassLoader();
-    //tripStatistics = in.readParcelable(classLoader);
-
-    for (int i = 0; i < numberOfPoints; ++i) {
-      Location location = in.readParcelable(classLoader);
-      locations.add(location);
-    }
-  }
-
-  @Override
-  public int describeContents() {
-    return 0;
-  }
-
-  @Override
-  public void writeToParcel(Parcel dest, int flags) {
-    dest.writeLong(id);
-    dest.writeString(name);
-    dest.writeString(description);
-    dest.writeString(category);
-    dest.writeLong(startId);
-    dest.writeLong(stopId);
-    dest.writeInt(numberOfPoints);
-    dest.writeString(icon);
-    dest.writeString(driveId);
-    dest.writeLong(modifiedTime);
-    dest.writeByte((byte) (sharedWithMe ? 1 : 0));
-    dest.writeString(sharedOwner);
-
-    //dest.writeParcelable(tripStatistics, 0);
-    for (int i = 0; i < numberOfPoints; ++i) {
-      dest.writeParcelable(locations.get(i), 0);
-    }
-  }
-
-  public static final Creator<Track> CREATOR = new Creator<Track>() {
-      @Override
-    public Track createFromParcel(Parcel in) {
-      return new Track(in);
+    public Track() {
     }
 
-      @Override
-    public Track[] newArray(int size) {
-      return new Track[size];
+    private Track(Parcel in) {
+        id = in.readLong();
+        name = in.readString();
+        description = in.readString();
+        category = in.readString();
+        startId = in.readLong();
+        stopId = in.readLong();
+        numberOfPoints = in.readInt();
+        icon = in.readString();
+        driveId = in.readString();
+        modifiedTime = in.readLong();
+        sharedWithMe = in.readByte() == 1;
+        sharedOwner = in.readString();
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        //tripStatistics = in.readParcelable(classLoader);
+
+        for (int i = 0; i < numberOfPoints; ++i) {
+            Location location = in.readParcelable(classLoader);
+            locations.add(location);
+        }
     }
-  };
 
-  public long getId() {
-    return id;
-  }
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-  public void setId(long id) {
-    this.id = id;
-  }
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeString(category);
+        dest.writeLong(startId);
+        dest.writeLong(stopId);
+        dest.writeInt(numberOfPoints);
+        dest.writeString(icon);
+        dest.writeString(driveId);
+        dest.writeLong(modifiedTime);
+        dest.writeByte((byte) (sharedWithMe ? 1 : 0));
+        dest.writeString(sharedOwner);
 
-  public String getName() {
-    return name;
-  }
+        //dest.writeParcelable(tripStatistics, 0);
+        for (int i = 0; i < numberOfPoints; ++i) {
+            dest.writeParcelable(locations.get(i), 0);
+        }
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public static final Creator<Track> CREATOR = new Creator<Track>() {
+        @Override
+        public Track createFromParcel(Parcel in) {
+            return new Track(in);
+        }
 
-  public String getDescription() {
-    return description;
-  }
+        @Override
+        public Track[] newArray(int size) {
+            return new Track[size];
+        }
+    };
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+    public long getId() {
+        return id;
+    }
 
-  public String getCategory() {
-    return category;
-  }
+    public void setId(long id) {
+        this.id = id;
+    }
 
-  public void setCategory(String category) {
-    this.category = category;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public long getStartId() {
-    return startId;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public void setStartId(long startId) {
-    this.startId = startId;
-  }
+    public String getDescription() {
+        return description;
+    }
 
-  public long getStopId() {
-    return stopId;
-  }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-  public void setStopId(long stopId) {
-    this.stopId = stopId;
-  }
+    public String getCategory() {
+        return category;
+    }
 
-  public int getNumberOfPoints() {
-    return numberOfPoints;
-  }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-  public void setNumberOfPoints(int numberOfPoints) {
-    this.numberOfPoints = numberOfPoints;
-  }
+    public long getStartId() {
+        return startId;
+    }
 
-  public String getIcon() {
-    return icon;
-  }
+    public void setStartId(long startId) {
+        this.startId = startId;
+    }
 
-  public void setIcon(String icon) {
-    this.icon = icon;
-  }
+    public long getStopId() {
+        return stopId;
+    }
 
-  public String getDriveId() {
-    return driveId;
-  }
+    public void setStopId(long stopId) {
+        this.stopId = stopId;
+    }
 
-  public void setDriveId(String driveId) {
-    this.driveId = driveId;
-  }
+    public int getNumberOfPoints() {
+        return numberOfPoints;
+    }
 
-  public long getModifiedTime() {
-    return modifiedTime;
-  }
+    public void setNumberOfPoints(int numberOfPoints) {
+        this.numberOfPoints = numberOfPoints;
+    }
 
-  public void setModifiedTime(long modifiedTime) {
-    this.modifiedTime = modifiedTime;
-  }
+    public String getIcon() {
+        return icon;
+    }
 
-  public boolean isSharedWithMe() {
-    return sharedWithMe;
-  }
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
 
-  public void setSharedWithMe(boolean sharedWithMe) {
-    this.sharedWithMe = sharedWithMe;
-  }
+    public String getDriveId() {
+        return driveId;
+    }
 
-  public String getSharedOwner() {
-    return sharedOwner;
-  }
-  
-  public void setSharedOwner(String sharedOwner) {
-    this.sharedOwner = sharedOwner;
-  }
-  
-  public TripStatistics getTripStatistics() {
-    return tripStatistics;
-  }
+    public void setDriveId(String driveId) {
+        this.driveId = driveId;
+    }
 
-  public void setTripStatistics(TripStatistics tripStatistics) {
-    this.tripStatistics = tripStatistics;
-  }
+    public long getModifiedTime() {
+        return modifiedTime;
+    }
 
-  public void addLocation(Location location) {
-    locations.add(location);
-  }
+    public void setModifiedTime(long modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
 
-  public ArrayList<Location> getLocations() {
-    return locations;
-  }
+    public boolean isSharedWithMe() {
+        return sharedWithMe;
+    }
 
-  public void setLocations(ArrayList<Location> locations) {
-    this.locations = locations;
-  }
+    public void setSharedWithMe(boolean sharedWithMe) {
+        this.sharedWithMe = sharedWithMe;
+    }
+
+    public String getSharedOwner() {
+        return sharedOwner;
+    }
+
+    public void setSharedOwner(String sharedOwner) {
+        this.sharedOwner = sharedOwner;
+    }
+
+    public TripStatistics getTripStatistics() {
+        return tripStatistics;
+    }
+
+    public void setTripStatistics(TripStatistics tripStatistics) {
+        this.tripStatistics = tripStatistics;
+    }
+
+    public int addLocation(Location location) {
+        locations.add(location);
+        return locations.size() - 1;
+    }
+
+    public ArrayList<Location> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(ArrayList<Location> locations) {
+        this.locations = locations;
+    }
 }
