@@ -19,9 +19,9 @@ package com.android.biketrack.io.file.exporter;
 import android.location.Location;
 import android.util.Log;
 
-import com.android.biketrack.content.MyTracksProviderUtils;
 import com.android.biketrack.content.Track;
 import com.android.biketrack.content.TrackLocation;
+import com.android.biketrack.content.TracksProviderUtils;
 import com.android.biketrack.utils.LocationUtils;
 
 import java.io.OutputStream;
@@ -38,7 +38,7 @@ public class FileTrackExporter implements TrackExporter {
 
   private static final String TAG = FileTrackExporter.class.getSimpleName();
 
-  private final MyTracksProviderUtils myTracksProviderUtils;
+  private final TracksProviderUtils tracksProviderUtils;
   private final Track[] tracks;
   private final TrackWriter trackWriter;
   private final TrackExporterListener trackExporterListener;
@@ -46,14 +46,14 @@ public class FileTrackExporter implements TrackExporter {
   /**
    * Constructor.
    * 
-   * @param myTracksProviderUtils the my tracks provider utils
+   * @param tracksProviderUtils the my tracks provider utils
    * @param tracks the tracks
    * @param trackWriter the track writer
    * @param trackExporterListener the track export listener
    */
-  public FileTrackExporter(MyTracksProviderUtils myTracksProviderUtils, Track[] tracks,
+  public FileTrackExporter(TracksProviderUtils tracksProviderUtils, Track[] tracks,
                            TrackWriter trackWriter, TrackExporterListener trackExporterListener) {
-    this.myTracksProviderUtils = myTracksProviderUtils;
+    this.tracksProviderUtils = tracksProviderUtils;
     this.tracks = tracks;
     this.trackWriter = trackWriter;
     this.trackExporterListener = trackExporterListener;
@@ -96,7 +96,7 @@ public class FileTrackExporter implements TrackExporter {
     /*boolean hasWaypoints = false;
     Cursor cursor = null;
     try {
-      cursor = myTracksProviderUtils.getWaypointCursor(
+      cursor = tracksProviderUtils.getWaypointCursor(
           track.getId(), -1L, Constants.MAX_LOADED_WAYPOINTS_POINTS);
       if (cursor != null && cursor.moveToFirst()) {
         *//*
@@ -111,7 +111,7 @@ public class FileTrackExporter implements TrackExporter {
             trackWriter.writeBeginWaypoints(track);
             hasWaypoints = true;
           }
-          Waypoint waypoint = myTracksProviderUtils.createWaypoint(cursor);
+          Waypoint waypoint = tracksProviderUtils.createWaypoint(cursor);
           trackWriter.writeWaypoint(waypoint);
         }
       }
@@ -134,10 +134,10 @@ public class FileTrackExporter implements TrackExporter {
     boolean isLastLocationValid = false;
     TrackWriterLocationFactory locationFactory = new TrackWriterLocationFactory();
     int locationNumber = 0;
-    MyTracksProviderUtils.LocationIterator locationIterator = null;
+    TracksProviderUtils.LocationIterator locationIterator = null;
 
     try {
-      locationIterator = myTracksProviderUtils.getTrackPointLocationIterator(
+      locationIterator = tracksProviderUtils.getTrackPointLocationIterator(
           track.getId(), -1L, false, locationFactory);
 
       while (locationIterator.hasNext()) {
@@ -187,7 +187,7 @@ public class FileTrackExporter implements TrackExporter {
         wroteSegment = false;
       }
       if (wroteTrack) {
-        Location lastValidTrackPoint = myTracksProviderUtils.getLastValidTrackPoint(track.getId());
+        Location lastValidTrackPoint = tracksProviderUtils.getLastValidTrackPoint(track.getId());
         setLocationTime(lastValidTrackPoint, offset);
         trackWriter.writeEndTrack(track, lastValidTrackPoint);
       } else {
@@ -219,7 +219,7 @@ public class FileTrackExporter implements TrackExporter {
    * 
    * @author Jimmy Shih
    */
-  private class TrackWriterLocationFactory implements MyTracksProviderUtils.LocationFactory {
+  private class TrackWriterLocationFactory implements TracksProviderUtils.LocationFactory {
     Location currentLocation;
     Location lastLocation;
 

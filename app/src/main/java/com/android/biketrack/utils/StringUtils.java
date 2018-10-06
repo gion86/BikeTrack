@@ -15,6 +15,9 @@
  */
 package com.android.biketrack.utils;
 
+import android.content.Context;
+import android.text.format.DateUtils;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -50,6 +53,18 @@ public class StringUtils {
      */
     public static String formatCData(String text) {
         return "<![CDATA[" + text.replaceAll("]]>", "]]]]><![CDATA[>") + "]]>";
+    }
+
+    /**
+     * Formats the date and time based on user's phone date/time preferences.
+     *
+     * @param context the context
+     * @param time the time in milliseconds
+     */
+    public static String formatDateTime(Context context, long time) {
+        return DateUtils.formatDateTime(
+                context, time, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE) + " "
+                + DateUtils.formatDateTime(context, time, DateUtils.FORMAT_SHOW_TIME).toString();
     }
 
     /**

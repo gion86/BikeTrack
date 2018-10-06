@@ -21,8 +21,8 @@ import android.os.AsyncTask;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
-import com.android.biketrack.content.MyTracksProviderUtils;
 import com.android.biketrack.content.Track;
+import com.android.biketrack.content.TracksProviderUtils;
 import com.android.biketrack.io.file.TrackFileFormat;
 import com.android.biketrack.ui.activity.SaveActivity;
 import com.android.biketrack.utils.FileUtils;
@@ -47,7 +47,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
     private final boolean playTrack;
     private final File directory;
     private final Context context;
-    private final MyTracksProviderUtils myTracksProviderUtils;
+    private final TracksProviderUtils tracksProviderUtils;
 
     private WakeLock wakeLock;
     private TrackExporter trackExporter;
@@ -82,7 +82,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
         this.playTrack = playTrack;
         this.directory = directory;
         context = saveActivity.getApplicationContext();
-        myTracksProviderUtils = MyTracksProviderUtils.Factory.get(context);
+        tracksProviderUtils = TracksProviderUtils.Factory.get(context);
 
         completed = false;
         successCount = 0;
@@ -130,7 +130,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
                 totalCount = 1;
                 Track[] tracks = new Track[trackIds.length];
                 for (int i = 0; i < trackIds.length; i++) {
-                    tracks[i] = myTracksProviderUtils.getTrack(trackIds[i]);
+                    tracks[i] = tracksProviderUtils.getTrack(trackIds[i]);
                     if (tracks[i] == null) {
                         Log.d(TAG, "No track for " + trackIds[i]);
                         return false;
@@ -187,7 +187,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
         Track track = tracks[0];
         //boolean useKmz = trackFileFormat == TrackFileFormat.KML && !playTrack;
         //String extension = useKmz ? KmzTrackExporter.KMZ_EXTENSION : trackFileFormat.getExtension();
-        FileTrackExporter fileTrackExporter = new FileTrackExporter(myTracksProviderUtils, tracks,
+        FileTrackExporter fileTrackExporter = new FileTrackExporter(tracksProviderUtils, tracks,
                 trackFileFormat.newTrackWriter(context, tracks.length > 1, playTrack),
                 new TrackExporterListener() {
 
@@ -204,7 +204,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
                 });
 
     /*trackExporter = useKmz ? new KmzTrackExporter(
-        myTracksProviderUtils, fileTrackExporter, tracks, context)
+        tracksProviderUtils, fileTrackExporter, tracks, context)
         : fileTrackExporter;*/
 
         trackExporter = fileTrackExporter;
@@ -244,7 +244,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
   private Boolean saveAllTracks() {
     Cursor cursor = null;
     try {
-      cursor = myTracksProviderUtils.getTrackCursor(null, null, TracksColumns._ID);
+      cursor = tracksProviderUtils.getTrackCursor(null, null, TracksColumns._ID);
       if (cursor == null) {
         return false;
       }
@@ -254,7 +254,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
           return false;
         }
         cursor.moveToPosition(i);
-        Track track = myTracksProviderUtils.createTrack(cursor);
+        Track track = tracksProviderUtils.createTrack(cursor);
         if (track != null && saveTracks(new Track[] { track })) {
           successCount++;
         }

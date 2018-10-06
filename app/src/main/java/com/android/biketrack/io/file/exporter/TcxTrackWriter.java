@@ -289,7 +289,7 @@ public class TcxTrackWriter implements TrackWriter {
     // Split the My Tracks version code into VersionMajor, VersionMinor, and,
     // BuildMajor to fit the integer type requirement for these fields in the
     // TCX spec.
-    String[] versionComponents = SystemUtils.getMyTracksVersion(context).split("\\.");
+    String[] versionComponents = SystemUtils.getAppVersion(context).split("\\.");
     int versionMajor = versionComponents.length > 0 ? Integer.valueOf(versionComponents[0]) : 0;
     int versionMinor = versionComponents.length > 1 ? Integer.valueOf(versionComponents[1]) : 0;
     int buildMajor = versionComponents.length > 2 ? Integer.valueOf(versionComponents[2]) : 0;
