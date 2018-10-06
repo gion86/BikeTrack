@@ -101,6 +101,8 @@
     <string name="activity_type_trail_running">trail running</string>
     <string name="activity_type_walking">walking</string>
 
+    <string name="track_name_format">Track %1$d</string>
+
     <!-- Files -->
     <string name="files_few">%1$d files</string>
     <string name="files_many">%1$d files</string>

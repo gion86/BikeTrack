@@ -10,6 +10,16 @@
     <string name="prefkey_pos_int" translatable="false">prefkey_pos_int</string>
     <string name="prefkey_fast_up" translatable="false">prefkey_fast_up</string>
 
-    <!-- Keys for non-persisted preferences. Sorted alphabetically. DO NOT TRANSLATE. -->
+    <string name="max_recording_distance_key">maxRecordingDistance</string>
+    <string name="min_recording_interval_key">minRecordingInterval</string>
+    <string name="recording_distance_interval_key">recordingDistanceInterval</string>
+    <string name="recording_gps_accuracy_key">recordingGpsAccuracy</string>
+    <string name="track_name_key">trackName</string>
+
+    <!-- Keys for persistend preferences. But they should not get backed up or restored. -->
+    <string name="auto_resume_track_current_retry_key">autoResumeTrackCurrentRetry</string>
+    <string name="bluetooth_sensor_key">bluetoothSensor</string>
+    <string name="recording_track_id_key">recordingTrackId</string>
+    <string name="recording_track_paused_key">recordingTrackPaused</string>
 
 </resources>

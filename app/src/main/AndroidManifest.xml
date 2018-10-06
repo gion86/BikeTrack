@@ -12,10 +12,15 @@
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
 
+    <!-- Permission to read/write external storage -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Permissions to access sensors -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- Permissions to record locations -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -46,6 +51,11 @@
             android:name=".service.location.LocationUpdatesService"
             android:enabled="true"
             android:exported="true" />
+
+        <service
+            android:enabled="true"
+            android:exported="true"
+            android:name="com.android.biketrack.service.location.TrackRecordingService"/>
 
     </application>
 
