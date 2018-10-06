@@ -74,8 +74,7 @@ import static com.android.biketrack.utils.LocationUtils.getLocationTitle;
  */
 public class LocationUpdatesService extends Service {
     private static final String TAG = LocationUpdatesService.class.getSimpleName();
-    private static final String PACKAGE_NAME =
-            "com.android.biketrack.service.location.locationupdatesservice";
+    private static final String PACKAGE_NAME = "com.android.biketrack.service.location.locationupdatesservice";
 
     /**
      * The name of the channel for notifications.

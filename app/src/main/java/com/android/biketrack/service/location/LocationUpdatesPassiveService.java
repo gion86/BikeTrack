@@ -11,10 +11,7 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-/**
- * Created by roberto on 9/29/16.
- */
-
+// TODO Remove ??
 public class LocationUpdatesPassiveService extends Service {
     private static final String TAG = "MyLocationService";
     private LocationManager mLocationManager = null;

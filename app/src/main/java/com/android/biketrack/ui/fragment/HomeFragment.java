@@ -1,3 +1,18 @@
+/*
+ * This file is part of BikeTrack application.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.android.biketrack.ui.fragment;
 
 import android.Manifest;
@@ -34,7 +49,8 @@ import android.widget.Toast;
 
 import com.android.biketrack.R;
 import com.android.biketrack.service.location.LocationUpdatesService;
-import com.android.biketrack.utils.LocationUtils;
+import com.android.biketrack.service.location.TrackRecordingService;
+import com.android.biketrack.service.location.TrackRecordingServiceConnection;
 import com.android.biketrack.utils.PreferencesUtils;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -62,6 +78,8 @@ import static com.android.biketrack.utils.LocationUtils.getLocationText;
  * A simple {@link Fragment} subclass.
  * Use the {@link HomeFragment#newInstance} factory method to
  * create an instance of this fragment.
+ *
+ * @author Gionata Boccalini
  */
 public class HomeFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = HomeFragment.class.getSimpleName();
@@ -91,6 +109,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     private Boolean mRequestingLocationUpdates;
 
     private LocationUpdatesService mService;
+    private TrackRecordingService mTrackService;
+
+    private TrackRecordingServiceConnection mTrackRecordingServiceConnection;
 
     private boolean mBound;
 
@@ -178,6 +199,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
         Toast.makeText(getActivity().getApplicationContext(), "Started location updates!", Toast.LENGTH_SHORT).show();
         mService.requestLocationUpdates();
+        mTrackService = mTrackRecordingServiceConnection.getServiceIfBound();
+        if (mTrackService != null) {
+            mTrackService.startNewTrack();
+        }
         updateLocationUI();
 
         mSettingsClient
@@ -334,6 +359,9 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         mLocationSettingsRequest = builder.build();
 
         mLocationReceiver = new LocationReceiver();
+
+        mTrackRecordingServiceConnection = new TrackRecordingServiceConnection(getActivity(), null);
+        mTrackRecordingServiceConnection.startAndBind();
     }
 
     @Override
@@ -390,12 +418,16 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mLocationReceiver,
                 new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
+
+        mRequestingLocationUpdates = PreferencesUtils.getBoolean(getActivity(), R.string.prefkey_req_loc_updates, false);
     }
 
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mLocationReceiver);
         super.onPause();
+
+        PreferencesUtils.setBoolean(getActivity(), R.string.prefkey_req_loc_updates, mRequestingLocationUpdates);
     }
 
     @Override
@@ -430,8 +462,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             getActivity().unbindService(mServiceConnection);
             mBound = false;
         }
-
-        PreferencesUtils.setBoolean(getActivity(), R.string.prefkey_req_loc_updates, mRequestingLocationUpdates);
 
         PreferenceManager.getDefaultSharedPreferences(getActivity())
                 .unregisterOnSharedPreferenceChangeListener(this);
