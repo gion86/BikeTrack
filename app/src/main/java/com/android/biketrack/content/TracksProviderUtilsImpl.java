@@ -89,6 +89,16 @@ public class TracksProviderUtilsImpl implements TracksProviderUtils {
         return mTracks.subList(0, mTracks.size() - 1);
     }
 
+    public long[] getAllTrackIds() { // TODO
+        long[] ids = new long[mTracks.size()];
+
+        for (int i = 0; i < mTracks.size(); i++) {
+            ids[i] = mTracks.get(i).getId();
+        }
+
+        return ids;
+    }
+
     @Override
     public Track getLastTrack() {
         return  mTracks.get(mTracks.size() - 1);
@@ -189,8 +199,35 @@ public class TracksProviderUtilsImpl implements TracksProviderUtils {
     }
 
     @Override
-    public LocationIterator getTrackPointLocationIterator(long trackId, long startTrackPointId, boolean descending, LocationFactory locationFactory) {
-        return null;
+    public LocationIterator getTrackPointLocationIterator(final long trackId, long startTrackPointId, boolean descending, final LocationFactory locationFactory) {
+        if (locationFactory == null) {
+            throw new IllegalArgumentException("locationFactory is null");
+        }
+        return new LocationIterator() {
+
+            private int currentIndex = 0;
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < mTracks.get((int)trackId).getLocations().size() && mTracks.get((int)trackId).getLocations().get(currentIndex) != null;
+            }
+
+            @Override
+            public Location next() {
+                Location location = locationFactory.createLocation();
+                location = mTracks.get((int)trackId).getLocations().get(currentIndex++);
+                return location;
+            }
+
+            @Override
+            public long getLocationId() {
+                return currentIndex;
+            }
+
+            @Override
+            public void close() {
+            }
+        };
     }
 
     @Override

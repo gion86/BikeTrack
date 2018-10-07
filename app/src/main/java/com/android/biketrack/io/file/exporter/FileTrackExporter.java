@@ -71,7 +71,7 @@ public class FileTrackExporter implements TrackExporter {
       long startTime = tracks[0].getTripStatistics().getStartTime();
       for (int i = 0; i < tracks.length; i++) {
         long offset = tracks[i].getTripStatistics().getStartTime() - startTime;
-        // TODO writeLocations(tracks[i], offset);
+        writeLocations(tracks[i], offset);
       }
       trackWriter.writeEndTracks();
       trackWriter.writeFooter();

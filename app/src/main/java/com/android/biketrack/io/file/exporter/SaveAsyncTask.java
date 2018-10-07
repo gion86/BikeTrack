@@ -21,11 +21,14 @@ import android.os.AsyncTask;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
+import com.android.biketrack.R;
 import com.android.biketrack.content.Track;
 import com.android.biketrack.content.TracksProviderUtils;
 import com.android.biketrack.io.file.TrackFileFormat;
 import com.android.biketrack.ui.activity.SaveActivity;
 import com.android.biketrack.utils.FileUtils;
+import com.android.biketrack.utils.PreferencesUtils;
+import com.android.biketrack.utils.SystemUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -114,17 +117,17 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
         try {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-            /*boolean isRecording = PreferencesUtils.getLong(saveActivity, R.string.recording_track_id_key)
+            boolean isRecording = PreferencesUtils.getLong(saveActivity, R.string.recording_track_id_key)
                     != PreferencesUtils.RECORDING_TRACK_ID_DEFAULT;
             boolean isPaused = PreferencesUtils.getBoolean(saveActivity,
                     R.string.recording_track_paused_key, PreferencesUtils.RECORDING_TRACK_PAUSED_DEFAULT);
             // Get the wake lock if not recording or paused
             if (!isRecording || isPaused) {
                 wakeLock = SystemUtils.acquireWakeLock(saveActivity, wakeLock);
-            }*/
+            }
 
             if (trackIds.length == 1 && trackIds[0] == -1L) {
-                //return saveAllTracks();
+                //TODO return saveAllTracks();
                 return null;
             } else {
                 totalCount = 1;
@@ -144,10 +147,9 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
                 }
             }
         } finally {
-
-            /*if (wakeLock != null && wakeLock.isHeld()) {
+            if (wakeLock != null && wakeLock.isHeld()) {
                 wakeLock.release();
-            }*/
+            }
         }
     }
 
@@ -239,7 +241,7 @@ public class SaveAsyncTask extends AsyncTask<Void, Integer, Boolean> {
     }
 
     /*  *//**
-     * Saves all the tracks.
+     * TODO Saves all the tracks.
      *//*
   private Boolean saveAllTracks() {
     Cursor cursor = null;

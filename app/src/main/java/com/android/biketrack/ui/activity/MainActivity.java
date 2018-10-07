@@ -48,6 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.biketrack.R;
+import com.android.biketrack.content.TracksProviderUtils;
 import com.android.biketrack.io.file.TrackFileFormat;
 import com.android.biketrack.ui.fragment.HomeFragment;
 import com.android.biketrack.ui.fragment.ScanFragment;
@@ -87,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mEnableBTReq;
     private boolean mFirstDrawerOpen;
+    private TracksProviderUtils mTracksProviderUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,11 +114,12 @@ public class MainActivity extends AppCompatActivity {
         // Load toolbar titles from string resources
         mFragmentTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
+        mTracksProviderUtils = TracksProviderUtils.Factory.get(this); // TODO
         mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), SaveActivity.class)
-                        .putExtra(SaveActivity.EXTRA_TRACK_IDS, new long[] { 0 })
+                        .putExtra(SaveActivity.EXTRA_TRACK_IDS, mTracksProviderUtils.getAllTrackIds())
                         .putExtra(SaveActivity.EXTRA_TRACK_FILE_FORMAT, (Parcelable) TrackFileFormat.TCX);
                 startActivity(intent);
             }

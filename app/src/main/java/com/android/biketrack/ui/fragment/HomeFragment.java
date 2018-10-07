@@ -294,6 +294,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
     private void stopLocationUpdates() {
         mService.removeLocationUpdates();
+        mTrackService = mTrackRecordingServiceConnection.getServiceIfBound();
+        if (mTrackService != null) {
+            mTrackService.endCurrentTrack();
+        }
         Toast.makeText(getActivity().getApplicationContext(), "Location updates stopped!", Toast.LENGTH_SHORT).show();
         toggleButtons();
     }
